@@ -1,0 +1,70 @@
+/* Google Fonts — loaded at runtime */
+@import url("https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+/* ── Custom Dark Brutalist Theme ─────────────────────────────────────────── */
+@theme inline {
+  /* Backgrounds */
+  --color-background: #0a0a0f;
+  --color-card: #16161f;
+  --color-border: #2a2a3a;
+
+  /* Accent colours */
+  --color-accent-purple: #7c6aff;
+  --color-accent-pink: #ff6a8a;
+  --color-accent-teal: #6affd4;
+
+  /* Text */
+  --color-foreground: #e2e2f0;
+  --color-muted: #8888a8;
+
+  /* Fonts */
+  --font-heading: var(--font-syne), "Syne", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
+  --font-sans: var(--font-syne), "Syne", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ── Base styles ─────────────────────────────────────────────────────────── */
+:root {
+  --background: #0a0a0f;
+  --foreground: #e2e2f0;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* ── Custom scrollbar ────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0f;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2a3a;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a4a;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a3a #0a0a0f;
+}
+
+/* ── Utility classes ─────────────────────────────────────────────────────── */
+.glass-card {
+  background: rgba(22, 22, 31, 0.6);
+  border: 1px solid #2a2a3a;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
