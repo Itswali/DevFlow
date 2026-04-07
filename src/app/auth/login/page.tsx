@@ -28,7 +28,7 @@ export default function SignUpPage() {
     password,
     callbackURL: "/dashboard",
   }, {
-    // This ensures the session is synced before moving on
+
     onSuccess: () => {
       router.push("/dashboard");
     },
