@@ -7,10 +7,9 @@ export default async function DashboardPage() {
     headers: await headers(),
   });
 
-  // If no session exists, redirect to login
   if (!session) {
     redirect("/register");
   }
 
-  return <div>Welcome to your dashboard, {session.user.email}</div>;
+  return <div>Welcome to your dashboard, {session.user.name}</div>;
 }

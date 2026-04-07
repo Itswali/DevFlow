@@ -7,8 +7,13 @@ await connectionToDatabase();
 
 export const auth = betterAuth({
   database: mongodbAdapter(mongoose.connection.db),
-
   emailAndPassword: {
     enabled: true,
+  },
+  user: {
+    fields: {
+      name: "name",
+      email: "email",
+    },
   },
 });
