@@ -9,8 +9,7 @@ export default async function Page() {
     headers: await headers(),
   });
 
-  // OPTIONAL: If you want logged-in users to go straight to the dashboard:
-  // if (session) redirect("/dashboard");
+
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-4">
