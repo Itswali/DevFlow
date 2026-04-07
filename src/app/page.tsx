@@ -1,11 +1,10 @@
+// app/page.tsx
 import React from "react";
-import connectionToDatabase from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { AuthButtons } from "@/components/AuthButtons"; // Import the new file
 
 export default async function Page() {
-  await connectionToDatabase();
-
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -18,6 +17,9 @@ export default async function Page() {
       ) : (
         <p>Not logged in</p>
       )}
+
+      {/* Render the client component here */}
+      <AuthButtons />
     </div>
   );
 }
