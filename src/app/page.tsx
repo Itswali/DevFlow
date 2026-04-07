@@ -1,25 +1,38 @@
-// app/page.tsx
 import React from "react";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { AuthButtons } from "@/components/AuthButtons"; // Import the new file
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default async function Page() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  return (
-    <div>
-      <h1 className="font-bold">Welcome to DevFlow</h1>
-      {session ? (
-        <p>Logged in as: {session.user.email}</p>
-      ) : (
-        <p>Not logged in</p>
-      )}
+  // OPTIONAL: If you want logged-in users to go straight to the dashboard:
+  // if (session) redirect("/dashboard");
 
-      {/* Render the client component here */}
-      <AuthButtons />
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+      <h1 className="text-4xl font-bold">Welcome to DevFlow</h1>
+
+      {session ? (
+        <div className="text-center">
+          <p className="mb-4">Logged in as: {session.user.email}</p>
+          <Button asChild>
+            <Link href="/dashboard">Go to Dashboard</Link>
+          </Button>
+        </div>
+      ) : (
+        <div className="flex gap-4">
+          <Button asChild variant="outline">
+            <Link href="/auth/login">Login</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/auth/register">Sign Up</Link>
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
