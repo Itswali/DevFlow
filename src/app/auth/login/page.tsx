@@ -23,7 +23,7 @@ export default function SignUpPage() {
 
  const handleSignIn = async () => {
   setLoading(true);
-  const { data, error } = await authClient.signIn.email({
+  await authClient.signIn.email({
     email,
     password,
     callbackURL: "/dashboard",

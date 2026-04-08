@@ -24,7 +24,7 @@ export default function SignUpPage() {
 
  const handleSignUp = async () => {
   setLoading(true);
-  const { data, error } = await authClient.signUp.email({
+  await authClient.signUp.email({
     name,
     email,
     password,
