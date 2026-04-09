@@ -1,12 +1,11 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
-import mongoose from "mongoose";
-import connectionToDatabase from "@/lib/db";
+import { MongoClient } from "mongodb";
 
-await connectionToDatabase();
+const client = new MongoClient(process.env.MONGODB_URI!);
 
 export const auth = betterAuth({
-  database: mongodbAdapter(mongoose.connection.db),
+  database: mongodbAdapter(client.db(), { client }),
   emailAndPassword: {
     enabled: true,
   },
@@ -16,4 +15,5 @@ export const auth = betterAuth({
       email: "email",
     },
   },
+  trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL!],
 });
