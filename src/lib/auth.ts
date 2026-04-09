@@ -4,17 +4,18 @@ import mongoose from "mongoose";
 import connectDB from "@/lib/db";
 import { admin } from "better-auth/plugins";
 
-await connectDB();
+connectDB();
+
 
 export const auth = betterAuth({
-  database: mongodbAdapter(mongoose.connection.db),
+  database: mongodbAdapter((await connectDB(), mongoose.connection.db!)),
   emailAndPassword: {
     enabled: true,
   },
   plugins: [
     admin({
-      defaultRole: "user",          // role assigned on signup
-      adminRoles: ["admin"],        // roles with admin privileges
+      defaultRole: "user",
+      adminRoles: ["admin"],
     }),
   ],
   user: {
