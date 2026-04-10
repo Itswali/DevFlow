@@ -20,7 +20,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ✅ Use request.headers, not headers()
   const session = await auth.api.getSession({
     headers: request.headers,
   });
