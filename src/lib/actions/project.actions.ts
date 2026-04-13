@@ -1,19 +1,19 @@
-"use server"
+'use server';
 
-import { connectDB } from '@/lib/db';
+import connectDB  from '@/lib/db';
 import Project from '@/models/Project';
 import { auth } from '@/lib/auth/auth';
+import '@/models/User';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
-// Create Project
-
+// ── Create Project ────────────────────────────────────────────
 export async function createProject(formData: {
   name: string;
   description?: string;
 }) {
-  const session = await auth.api.getSession({headers: await headers()});
-  if(!session) throw new Error("Unauthorized");
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) throw new Error('Unauthorized');
 
   await connectDB();
 
@@ -21,30 +21,46 @@ export async function createProject(formData: {
     name:        formData.name,
     description: formData.description,
     owner:       session.user.id,
-    members:     [session.user.id],
+    members:     [session.user.id], // creator is auto-added as member
   });
 
   revalidatePath('/dashboard');
-  return JSON.parse(JSON.stringify(project));
+  return JSON.parse(JSON.stringify(project)); // serialize mongoose doc
 }
 
-// get all projects for current users
-
-export async function getProjectById(projectId: string) {
+// ── Get All Projects for Current User ────────────────────────
+export async function getProjects() {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) throw new Error("Unauthorized");
+  if (!session) throw new Error('Unauthorized');
 
   await connectDB();
 
-  const project = await Project.findById(projectId).populate('owner', 'name email image').populate('members', "name email image");
+  const projects = await Project.find({
+    members: session.user.id,   // only projects user belongs to
+  })
+    .populate('owner', 'name email image')
+    .sort({ createdAt: -1 });
 
-  if(!project) throw new Error("Project not found");
+  return JSON.parse(JSON.stringify(projects));
+}
+
+// ── Get Single Project ────────────────────────────────────────
+export async function getProjectById(projectId: string) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) throw new Error('Unauthorized');
+
+  await connectDB();
+
+  const project = await Project.findById(projectId)
+    .populate('owner',   'name email image')
+    .populate('members', 'name email image');
+
+  if (!project) throw new Error('Project not found');
 
   return JSON.parse(JSON.stringify(project));
 }
 
-// delete project
-
+// ── Delete Project (admin/owner only) ────────────────────────
 export async function deleteProject(projectId: string) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) throw new Error('Unauthorized');
