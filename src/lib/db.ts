@@ -18,7 +18,7 @@ const connectDB = async () => {
 
   if (!cached.promise) {
     cached.promise = mongoose.connect(MONGODB_URI, {
-      dbName: 'devflow', // Good practice to specify DB name
+      dbName: 'devflow',
       bufferCommands: false,
     }).then((mongoose) => {
       console.log("Connected to DB");
