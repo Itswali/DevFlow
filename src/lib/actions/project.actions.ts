@@ -43,5 +43,22 @@ export async function getProjectById(projectId: string) {
   return JSON.parse(JSON.stringify(project));
 }
 
-//
+// delete project
 
+export async function deleteProject(projectId: string) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) throw new Error('Unauthorized');
+
+  await connectDB();
+
+  const project = await Project.findById(projectId);
+  if (!project) throw new Error('Project not found');
+
+  // Only the owner can delete
+  if (project.owner.toString() !== session.user.id) {
+    throw new Error('Forbidden');
+  }
+
+  await Project.findByIdAndDelete(projectId);
+  revalidatePath('/dashboard');
+}
