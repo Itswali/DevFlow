@@ -3,6 +3,7 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import mongoose from "mongoose";
 import connectDB from "@/lib/db";
 import { admin } from "better-auth/plugins";
+import { headers } from "next/headers";
 
 connectDB();
 
@@ -25,3 +26,10 @@ export const auth = betterAuth({
     },
   },
 });
+
+export async function getSession() {
+  const result = await auth.api.getSession({
+    headers: await headers(),
+  });
+  return result;
+}

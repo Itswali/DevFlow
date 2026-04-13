@@ -1,5 +1,5 @@
 // lib/dal.ts  (Data Access Layer)
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
 
 export async function requireRole(roles: string[]) {

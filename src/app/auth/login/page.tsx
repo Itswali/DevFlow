@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth/auth-client";
 import { useRouter } from "next/navigation";
 import { Button } from '@/components/ui/button';
 import {
@@ -15,15 +15,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function SignUpPage() {
+export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
- const handleSignIn = async () => {
+ const handleSignIn = async (e: React.FormEvent) => {
+  e.preventDefault();
   setLoading(true);
-  const { data, error } = await authClient.signIn.email({
+
+   await authClient.signIn.email({
     email,
     password,
     callbackURL: "/dashboard",

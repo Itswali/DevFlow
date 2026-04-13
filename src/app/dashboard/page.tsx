@@ -1,7 +1,8 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
 import { LogoutButton } from "@/components/LogoutButton";
 import LeftDashboard from "@/components/LeftDashboard";
+import Page from "../page";
 
 
 export default async function DashboardPage() {
@@ -9,27 +10,30 @@ export default async function DashboardPage() {
     headers: await headers(),
   });
 
+  // 1. Logged In State
+  if (session?.user) {
+    return (
+      <div className="flex min-h-screen bg-[#F8F8FA]">
+        <aside className="p-4">
+          <LeftDashboard />
+        </aside>
+        <main className="flex-1 p-8">
+          <div className="flex justify-between items-center border-b pb-6">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+              Welcome, {session.user.name}
+            </h1>
+            <LogoutButton />
+          </div>
+          <div className="mt-8">{/* Content goes here */}</div>
+        </main>
+      </div>
+    );
+  }
+
+  // 2. Logged Out State (Centering the Welcome Page)
   return (
-    <div className="flex min-h-screen bg-[#F8F8FA]">
-      {/* Sidebar Section */}
-      <aside className="p-4">
-        <LeftDashboard />
-      </aside>
-
-      {/* Main Content Section */}
-      <main className="flex-1 p-8">
-        <div className="flex justify-between items-center border-b pb-6">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            Welcome, {session?.user.name}
-          </h1>
-          <LogoutButton />
-        </div>
-
-        {/* Your dashboard content goes here */}
-        <div className="mt-8">
-          {/* Content cards or tables */}
-        </div>
-      </main>
+    <div className="flex min-h-screen w-full items-center justify-center bg-[#F8F8FA]">
+        <Page />
     </div>
   );
 }

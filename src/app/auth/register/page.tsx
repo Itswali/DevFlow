@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { authClient } from "@/lib/auth-client";
+import React, { useState } from "react";
+import { authClient } from "@/lib/auth/auth-client";
 import { useRouter } from "next/navigation";
 import { Button } from '@/components/ui/button';
 import {
@@ -22,9 +22,12 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
- const handleSignUp = async () => {
+ const handleSignUp = async (e: React.FormEvent) => {
+  e.preventDefault();
+
   setLoading(true);
-  const { data, error } = await authClient.signUp.email({
+
+  await authClient.signUp.email({
     name,
     email,
     password,

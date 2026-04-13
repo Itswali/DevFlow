@@ -1,5 +1,5 @@
 import React from "react";
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
