@@ -28,4 +28,20 @@ export async function createProject(formData: {
   return JSON.parse(JSON.stringify(project));
 }
 
+// get all projects for current users
+
+export async function getProjectById(projectId: string) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) throw new Error("Unauthorized");
+
+  await connectDB();
+
+  const project = await Project.findById(projectId).populate('owner', 'name email image').populate('members', "name email image");
+
+  if(!project) throw new Error("Project not found");
+
+  return JSON.parse(JSON.stringify(project));
+}
+
+//
 
