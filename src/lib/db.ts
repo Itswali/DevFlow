@@ -1,33 +1,30 @@
-import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGO_URL;
+import mongoose from 'mongoose';
+
+const MONGODB_URI = process.env.MONGODB_URI!;
 
 if (!MONGODB_URI) {
-  throw new Error(process.env.MONGO_URL);
+  throw new Error('Please define MONGODB_URI in .env.local');
 }
 
-// Check if we have a cached connection to prevent multiple connections during HMR
-let cached = (global as any).mongoose;
+let cached = global.mongoose as {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+};
 
 if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+  cached = global.mongoose = { conn: null, promise: null };
 }
 
-const connectDB = async () => {
+export async function connectDB() {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
     cached.promise = mongoose.connect(MONGODB_URI, {
-      dbName: 'devflow',
       bufferCommands: false,
-    }).then((mongoose) => {
-      console.log("Connected to DB");
-      return mongoose;
     });
   }
 
   cached.conn = await cached.promise;
   return cached.conn;
-};
-
-export default connectDB;
+}
