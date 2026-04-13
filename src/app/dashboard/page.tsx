@@ -14,7 +14,7 @@ export default async function DashboardPage() {
   if (session?.user) {
     return (
       <div className="flex min-h-screen bg-[#F8F8FA]">
-        <aside className="p-4">
+        <aside>
           <LeftDashboard />
         </aside>
         <main className="flex-1 p-8">
