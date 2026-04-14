@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import LeftDashboard from "@/components/LeftDashboard";
 import { Toaster } from 'sonner';
 
 const geistSans = Geist({
@@ -28,11 +29,24 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        {children}
+      <body className="bg-slate-50">
+        {/* Main Wrapper */}
+        <div className="flex h-screen w-full p-4 gap-4">
 
+          {/* Sidebar stays fixed on the left */}
+          <aside className="h-full">
+            <LeftDashboard />
+          </aside>
+
+          {/* Page Content goes on the right */}
+          <main className="flex-1 h-full overflow-y-auto">
+            {children}
+          </main>
+
+        </div>
 <Toaster richColors position="top-right" />
-        </body>
+      </body>
     </html>
   );
 }
+
