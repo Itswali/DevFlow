@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CalendarDays } from 'lucide-react';
+import DeleteButton from '@/components/DeleteButton';
 
 interface Props {
   project: {
@@ -59,9 +60,12 @@ export default function ProjectCard({ project }: Props) {
           </div>
 
           {/* Date */}
+          <div className='flex flex-row justify-between '>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <CalendarDays className="w-3 h-3" />
             {new Date(project.createdAt).toLocaleDateString()}
+          </div>
+          <DeleteButton projectId={project._id} />
           </div>
         </CardContent>
 

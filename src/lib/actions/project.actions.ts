@@ -36,7 +36,7 @@ export async function getProjects() {
   await connectDB();
 
   const projects = await Project.find({
-    members: session.user.id,   // only projects user belongs to
+    members: session.user.id,
   })
     .populate('owner', 'name email image')
     .sort({ createdAt: -1 });
