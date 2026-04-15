@@ -101,7 +101,7 @@ export default function CommentSection({
               <Avatar className="w-7 h-7 shrink-0 mt-0.5">
                 <AvatarImage src={comment.author.image} />
                 <AvatarFallback className="text-xs">
-                  {comment.author.name[0].toUpperCase()}
+                  {comment?.author?.name[0]?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
 

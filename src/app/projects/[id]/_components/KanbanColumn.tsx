@@ -16,10 +16,11 @@ interface Props {
   column:    { id: TaskStatus; label: string };
   tasks:     Task[];
   projectId: string;
+  currentUserId: string;
   members:   { _id: string; name: string; image?: string }[];
 }
 
-export default function KanbanColumn({ column, tasks, projectId }: Props) {
+export default function KanbanColumn({ column, tasks, projectId, currentUserId}: Props) {
   const [adding, setAdding]         = useState(false);
   const [title, setTitle]           = useState('');
   const [isPending, startTransition] = useTransition();
@@ -79,7 +80,12 @@ export default function KanbanColumn({ column, tasks, projectId }: Props) {
           strategy={verticalListSortingStrategy}
         >
           {tasks.map((task) => (
-            <TaskCard key={task._id} task={task} />
+            <TaskCard
+    key={task._id}
+    task={task}
+    projectId={projectId}
+    currentUserId={currentUserId}
+  />
           ))}
         </SortableContext>
 

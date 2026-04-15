@@ -40,10 +40,11 @@ export const COLUMNS: { id: TaskStatus; label: string }[] = [
 interface Props {
   projectId: string;
   initialTasks: Task[];
+  currentUserId: string;
   members: { _id: string; name: string; image?: string }[];
 }
 
-export default function KanbanBoard({ projectId, initialTasks, members }: Props) {
+export default function KanbanBoard({ projectId, initialTasks, members, currentUserId }: Props) {
   const [tasks, setTasks]           = useState<Task[]>(initialTasks);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
@@ -171,6 +172,7 @@ export default function KanbanBoard({ projectId, initialTasks, members }: Props)
             column={col}
             tasks={getColumnTasks(col.id)}
             projectId={projectId}
+            currentUserId={currentUserId}
             members={members}
           />
         ))}

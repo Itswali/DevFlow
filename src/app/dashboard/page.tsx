@@ -1,7 +1,6 @@
 import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
 import { LogoutButton } from "@/components/LogoutButton";
-import LeftDashboard from "@/components/LeftDashboard";
 import Page from "../page";
 
 
@@ -14,9 +13,7 @@ export default async function DashboardPage() {
   if (session?.user) {
     return (
       <div className="flex min-h-screen bg-[#F8F8FA]">
-        <aside>
-          <LeftDashboard />
-        </aside>
+
         <main className="flex-1 p-8">
           <div className="flex justify-between items-center border-b pb-6">
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">

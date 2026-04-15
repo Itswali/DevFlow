@@ -45,7 +45,7 @@ export default function SignInPage() {
       <div className="flex justify-center items-center min-h-screen">
       <Card className="w-87.5">
         <CardHeader>
-          <CardTitle>Sign Up</CardTitle>
+          <CardTitle>Log In</CardTitle>
           <CardDescription>Create your account in seconds.</CardDescription>
         </CardHeader>
         <CardContent>
