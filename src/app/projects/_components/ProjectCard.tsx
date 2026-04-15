@@ -17,7 +17,7 @@ interface Props {
 
 export default function ProjectCard({ project }: Props) {
   return (
-    <Link href={`/projects/${project._id}`}>
+    <Link href={`/board/${project._id}`}>
       <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
 
         <CardHeader className="pb-2">
