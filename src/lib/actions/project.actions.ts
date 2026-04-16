@@ -46,18 +46,27 @@ export async function getProjects() {
 
 // ── Get Single Project ────────────────────────────────────────
 export async function getProjectById(projectId: string) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) throw new Error('Unauthorized');
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session) throw new Error('Unauthorized');
 
-  await connectDB();
+    await connectDB();
 
-  const project = await Project.findById(projectId)
-    .populate('owner',   'name email image')
-    .populate('members', 'name email image');
+    // 1. Validate the ID format to prevent Mongoose "CastError"
+    if (projectId.length !== 24) return null;
 
-  if (!project) throw new Error('Project not found');
+    const project = await Project.findById(projectId)
+      .populate('owner',   'name email image')
+      .populate('members', 'name email image');
 
-  return JSON.parse(JSON.stringify(project));
+    // 2. Return null instead of throwing
+    if (!project) return null;
+
+    return JSON.parse(JSON.stringify(project));
+  } catch (error) {
+    console.error("Error in getProjectById:", error);
+    return null; // Return null so the UI can call notFound()
+  }
 }
 
 // ── Delete Project (admin/owner only) ────────────────────────
