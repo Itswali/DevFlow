@@ -1,6 +1,7 @@
 import { getProjectById } from "@/lib/actions/project.actions";
 import { getTasksByProject } from "@/lib/actions/task.actions";
 import { notFound } from "next/navigation";
+import KanbanBoard from "./_components/KanbanBoard";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -31,13 +32,13 @@ return (
       </div>
 
       {/* Kanban Board */}
-      {/* <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         <KanbanBoard
           projectId={params.id}
           initialTasks={tasks}
           members={project.members}
         />
-      </div> */}
+      </div>
 
     </div>
 );
