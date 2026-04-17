@@ -1,21 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useTransition } from 'react';
-import TaskCard                    from './TaskCard';
-import { Task, TaskStatus }        from './KanbanBoard';
-import { createTask }              from '@/lib/actions/task.actions';
-import { Button }                  from '@/components/ui/button';
-import { Input }                   from '@/components/ui/input';
-import { Plus, X, Loader2 }        from 'lucide-react';
-import { toast }                   from 'sonner';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useState, useTransition } from "react";
+import TaskCard from "./TaskCard";
+import { Task, TaskStatus } from "./KanbanBoard";
+import { createTask } from "@/lib/actions/task.actions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Props {
-  column:    { id: TaskStatus; label: string };
-  tasks:     Task[];
+  column: { id: TaskStatus; label: string };
+  tasks: Task[];
   projectId: string;
-  members:   { _id: string; name: string; image?: string }[];
+  members: { _id: string; name: string; image?: string }[];
 }
 
 export default function KanbanColumn({
@@ -25,26 +33,28 @@ export default function KanbanColumn({
   // selectedTaskId,
   // onTaskClick,
 }: Props) {
-  const [adding, setAdding]          = useState(false);
-  const [title, setTitle]            = useState('');
-  const [priority, setPriority] = useState('');
-  const [description, setDescription] = useState('');
+  const [adding, setAdding] = useState(false);
+  const [title, setTitle] = useState("");
+  const [priority, setPriority] = useState("");
+  const [description, setDescription] = useState("");
   const [isPending, startTransition] = useTransition();
+
 
   function handleAdd() {
     if (!title.trim()) return;
     startTransition(async () => {
       try {
         await createTask({
-          title:     title.trim(),
+          title: title.trim(),
           projectId,
-          priority:  'medium',
+          description: description.trim(),
+          priority: priority || 'medium',
         });
-        toast.success('Task created!');
-        setTitle('');
+        toast.success("Task created!");
+        setTitle("");
         setAdding(false);
       } catch {
-        toast.error('Failed to create task');
+        toast.error("Failed to create task");
       }
     });
   }
@@ -63,8 +73,7 @@ export default function KanbanColumn({
           size="icon"
           variant="ghost"
           className="w-6 h-6"
-          onClick={() => setAdding(true)}
-        >
+          onClick={() => setAdding(true)}>
           <Plus className="w-3.5 h-3.5" />
         </Button>
       </div>
@@ -83,15 +92,14 @@ export default function KanbanColumn({
         {/* Inline Add Task */}
         {adding && (
           <div className="space-y-2 p-2 bg-background rounded-md border">
-
             <Input
               autoFocus
               placeholder="Task title..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter')  handleAdd();
-                if (e.key === 'Escape') setAdding(false);
+                if (e.key === "Enter") handleAdd();
+                if (e.key === "Escape") setAdding(false);
               }}
             />
             <Textarea
@@ -100,35 +108,40 @@ export default function KanbanColumn({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter')  handleAdd();
-                if (e.key === 'Escape') setAdding(false);
+                if (e.key === "Enter") handleAdd();
+                if (e.key === "Escape") setAdding(false);
               }}
             />
-             <Select>
-      <SelectTrigger className="w-full max-w-48" value={priority} onChange={(e) => setPriority(e.target.value)}>
-        <SelectValue placeholder="Select Task Priority" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          <SelectLabel>Priority</SelectLabel>
-          <SelectItem value="low">Low</SelectItem>
-          <SelectItem value="medium">Medium</SelectItem>
-          <SelectItem value="hard">Hard</SelectItem>
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+            <Select
+              value={priority}
+              onValueChange={(value) => setPriority(value)}>
+              <SelectTrigger className="w-full max-w-48">
+                <SelectValue placeholder="Select Task Priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Priority</SelectLabel>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
             <div className="flex gap-1">
               <Button size="sm" onClick={handleAdd} disabled={isPending}>
-                {isPending
-                  ? <Loader2 className="w-3 h-3 animate-spin" />
-                  : 'Add'
-                }
+                {isPending ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  "Add"
+                )}
               </Button>
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => { setAdding(false); setTitle(''); }}
-              >
+                onClick={() => {
+                  setAdding(false);
+                  setTitle("");
+                }}>
                 <X className="w-3 h-3" />
               </Button>
             </div>

@@ -58,9 +58,9 @@ export default function KanbanBoard({ projectId, initialTasks, members}: Props) 
   function getColumnTasks(status: TaskStatus) {
     return tasks.filter((t) => t.status === status).sort((a,b) => a.order - b.order);
   }
-  function handleTaskClick(task: Task){
-    setSelectedTask((prev) => (prev?._id === task._id ? null : task));
-  }
+  // function handleTaskClick(task: Task){
+  //   setSelectedTask((prev) => (prev?._id === task._id ? null : task));
+  // }
 
   async function handleMoveToColumn(targetStatus: TaskStatus) {
      if (!selectedTask || selectedTask.status === targetStatus || isMoving) return;
@@ -133,8 +133,8 @@ export default function KanbanBoard({ projectId, initialTasks, members}: Props) 
             tasks={getColumnTasks(col.id)}
             projectId={projectId}
             members={members}
-            selectedTaskId={selectedTask?._id}
-            onTaskClick={handleTaskClick}
+            // selectedTaskId={selectedTask?._id}
+            // onTaskClick={handleTaskClick}
           />
         ))}
       </div>
