@@ -35,7 +35,6 @@ export async function createTask(formData: {
     assignee:    formData.assigneeId,
     createdBy:   session.user.id,
     dueDate:     formData.dueDate,
-    status:      'todo',
     order:       (lastTask?.order ?? 0) + 1,
   });
 

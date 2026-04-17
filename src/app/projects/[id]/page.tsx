@@ -34,7 +34,7 @@ return (
       {/* Kanban Board */}
       <div className="flex-1 overflow-hidden">
         <KanbanBoard
-          projectId={params.id}
+          projectId={id}
           initialTasks={tasks}
           members={project.members}
         />

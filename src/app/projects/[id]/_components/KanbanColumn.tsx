@@ -8,25 +8,27 @@ import { Button }                  from '@/components/ui/button';
 import { Input }                   from '@/components/ui/input';
 import { Plus, X, Loader2 }        from 'lucide-react';
 import { toast }                   from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Props {
-  column:         { id: TaskStatus; label: string };
-  tasks:          Task[];
-  projectId:      string;
-  members:        { _id: string; name: string; image?: string }[];
-  selectedTaskId?: string;
-  onTaskClick:    (task: Task) => void;
+  column:    { id: TaskStatus; label: string };
+  tasks:     Task[];
+  projectId: string;
+  members:   { _id: string; name: string; image?: string }[];
 }
 
 export default function KanbanColumn({
   column,
   tasks,
   projectId,
-  selectedTaskId,
-  onTaskClick,
+  // selectedTaskId,
+  // onTaskClick,
 }: Props) {
   const [adding, setAdding]          = useState(false);
   const [title, setTitle]            = useState('');
+  const [priority, setPriority] = useState('');
+  const [description, setDescription] = useState('');
   const [isPending, startTransition] = useTransition();
 
   function handleAdd() {
@@ -36,7 +38,6 @@ export default function KanbanColumn({
         await createTask({
           title:     title.trim(),
           projectId,
-          status:    column.id,
           priority:  'medium',
         });
         toast.success('Task created!');
@@ -69,19 +70,20 @@ export default function KanbanColumn({
       </div>
 
       {/* Tasks List */}
-      <div className="flex flex-col gap-2 flex-1 rounded-lg p-2 min-h-[200px] bg-muted/20">
+      <div className="flex flex-col gap-2 flex-1 rounded-lg p-2 min-h-50 bg-muted/20">
         {tasks.map((task) => (
           <TaskCard
             key={task._id}
             task={task}
-            isSelected={task._id === selectedTaskId}
-            onClick={() => onTaskClick(task)}
+            // isSelected={task._id === selectedTaskId}
+            // onClick={() => onTaskClick(task)}
           />
         ))}
 
         {/* Inline Add Task */}
         {adding && (
           <div className="space-y-2 p-2 bg-background rounded-md border">
+
             <Input
               autoFocus
               placeholder="Task title..."
@@ -92,6 +94,29 @@ export default function KanbanColumn({
                 if (e.key === 'Escape') setAdding(false);
               }}
             />
+            <Textarea
+              autoFocus
+              placeholder="Task Description..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter')  handleAdd();
+                if (e.key === 'Escape') setAdding(false);
+              }}
+            />
+             <Select>
+      <SelectTrigger className="w-full max-w-48" value={priority} onChange={(e) => setPriority(e.target.value)}>
+        <SelectValue placeholder="Select Task Priority" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          <SelectLabel>Priority</SelectLabel>
+          <SelectItem value="low">Low</SelectItem>
+          <SelectItem value="medium">Medium</SelectItem>
+          <SelectItem value="hard">Hard</SelectItem>
+        </SelectGroup>
+      </SelectContent>
+    </Select>
             <div className="flex gap-1">
               <Button size="sm" onClick={handleAdd} disabled={isPending}>
                 {isPending
