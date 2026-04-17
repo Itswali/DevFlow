@@ -1,20 +1,20 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 
 export type TaskStatus   = 'todo' | 'in-progress' | 'in-review' | 'done';
-export type TaskPriority = 'low' | 'medium' | 'high';
+export type TaskPriority = 'low'  | 'medium'       | 'high';
 
 export interface ITask extends Document {
-  title: string;
+  title:        string;
   description?: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  project: Types.ObjectId;      // ref: Project
-  assignee?: Types.ObjectId;    // ref: User
-  createdBy: Types.ObjectId;    // ref: User
-  dueDate?: Date;
-  order: number;                // position in Kanban column
-  createdAt: Date;
-  updatedAt: Date;
+  status:       TaskStatus;
+  priority:     TaskPriority;
+  project:      Types.ObjectId;
+  assignee?:    Types.ObjectId;
+  createdBy:    Types.ObjectId;
+  dueDate?:     Date;
+  order:        number;
+  createdAt:    Date;
+  updatedAt:    Date;
 }
 
 const TaskSchema = new Schema<ITask>(
@@ -32,7 +32,7 @@ const TaskSchema = new Schema<ITask>(
       default: 'medium',
     },
     project:   { type: Schema.Types.ObjectId, ref: 'Project', required: true },
-    assignee:  { type: Schema.Types.ObjectId, ref: 'User' },
+    assignee:  { type: Schema.Types.ObjectId, ref: 'User'    },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     dueDate:   { type: Date },
     order:     { type: Number, default: 0 },
@@ -40,6 +40,7 @@ const TaskSchema = new Schema<ITask>(
   { timestamps: true }
 );
 
+// Fast Kanban queries
 TaskSchema.index({ project: 1, status: 1, order: 1 });
 
 const Task: Model<ITask> =

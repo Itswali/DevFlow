@@ -1,66 +1,61 @@
-"use client";
+'use client';
 
-import { useState, useTransition } from "react";
-import TaskCard from "./TaskCard";
-import { Task, TaskStatus } from "./KanbanBoard";
-import { createTask } from "@/lib/actions/task.actions";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Plus, X, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { Textarea } from "@/components/ui/textarea";
+import { useState, useTransition } from 'react';
+import { useDroppable }            from '@dnd-kit/core';
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import TaskCard             from './TaskCard';
+import { Task, TaskStatus } from './KanbanBoard';
+import { createTask }       from '@/lib/actions/task.actions';
+import { Button }           from '@/components/ui/button';
+import { Input }            from '@/components/ui/input';
+import { Plus, X, Loader2 } from 'lucide-react';
+import { toast }            from 'sonner';
 
 interface Props {
-  column: { id: TaskStatus; label: string };
-  tasks: Task[];
-  projectId: string;
-  members: { _id: string; name: string; image?: string }[];
+  column:        { id: TaskStatus; label: string };
+  tasks:         Task[];
+  projectId:     string;
+  currentUserId: string;
+  members:       { _id: string; name: string; image?: string }[];
 }
 
 export default function KanbanColumn({
   column,
   tasks,
   projectId,
-  // selectedTaskId,
-  // onTaskClick,
+  currentUserId,
 }: Props) {
-  const [adding, setAdding] = useState(false);
-  const [title, setTitle] = useState("");
-  const [priority, setPriority] = useState("");
-  const [description, setDescription] = useState("");
+  const [adding, setAdding]          = useState(false);
+  const [title, setTitle]            = useState('');
   const [isPending, startTransition] = useTransition();
 
+  const { setNodeRef, isOver } = useDroppable({ id: column.id });
 
   function handleAdd() {
     if (!title.trim()) return;
+
     startTransition(async () => {
       try {
         await createTask({
-          title: title.trim(),
+          title:     title.trim(),
           projectId,
-          description: description.trim(),
-          priority: priority || 'medium',
+          priority:  'medium',
         });
-        toast.success("Task created!");
-        setTitle("");
+        toast.success('Task created!');
+        setTitle('');
         setAdding(false);
       } catch {
-        toast.error("Failed to create task");
+        toast.error('Failed to create task');
       }
     });
   }
 
   return (
     <div className="flex flex-col w-72 shrink-0">
+
       {/* Column Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -73,21 +68,32 @@ export default function KanbanColumn({
           size="icon"
           variant="ghost"
           className="w-6 h-6"
-          onClick={() => setAdding(true)}>
+          onClick={() => setAdding(true)}
+        >
           <Plus className="w-3.5 h-3.5" />
         </Button>
       </div>
 
       {/* Tasks List */}
-      <div className="flex flex-col gap-2 flex-1 rounded-lg p-2 min-h-50 bg-muted/20">
-        {tasks.map((task) => (
-          <TaskCard
-            key={task._id}
-            task={task}
-            // isSelected={task._id === selectedTaskId}
-            // onClick={() => onTaskClick(task)}
-          />
-        ))}
+      <div
+        ref={setNodeRef}
+        className={`flex flex-col gap-2 flex-1 rounded-lg p-2 min-h-[200px] transition-colors ${
+          isOver ? 'bg-muted/60' : 'bg-muted/20'
+        }`}
+      >
+        <SortableContext
+          items={tasks.map((t) => t._id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {tasks.map((task) => (
+            <TaskCard
+              key={task._id}
+              task={task}
+              projectId={projectId}
+              currentUserId={currentUserId}
+            />
+          ))}
+        </SortableContext>
 
         {/* Inline Add Task */}
         {adding && (
@@ -98,56 +104,29 @@ export default function KanbanColumn({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleAdd();
-                if (e.key === "Escape") setAdding(false);
+                if (e.key === 'Enter')  handleAdd();
+                if (e.key === 'Escape') setAdding(false);
               }}
             />
-            <Textarea
-              autoFocus
-              placeholder="Task Description..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleAdd();
-                if (e.key === "Escape") setAdding(false);
-              }}
-            />
-            <Select
-              value={priority}
-              onValueChange={(value) => setPriority(value)}>
-              <SelectTrigger className="w-full max-w-48">
-                <SelectValue placeholder="Select Task Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Priority</SelectLabel>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
             <div className="flex gap-1">
               <Button size="sm" onClick={handleAdd} disabled={isPending}>
-                {isPending ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  "Add"
-                )}
+                {isPending
+                  ? <Loader2 className="w-3 h-3 animate-spin" />
+                  : 'Add'
+                }
               </Button>
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => {
-                  setAdding(false);
-                  setTitle("");
-                }}>
+                onClick={() => { setAdding(false); setTitle(''); }}
+              >
                 <X className="w-3 h-3" />
               </Button>
             </div>
           </div>
         )}
       </div>
+
     </div>
   );
 }

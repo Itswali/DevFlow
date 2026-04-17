@@ -1,34 +1,36 @@
-'use client'
-import { useState } from 'react'
-// import {
-//   DndContext,
-//   DragEndEvent,
-//   DragOverEvent,
-//   DragOverlay,
-//   DragStartEvent,
-//   PointerSensor,
-//   useSensor,
-//   useSensors,
-// } from '@dnd-kit/core';
-// import { arrayMove } from '@dnd-kit/sortable';
+'use client';
+
+import { useState } from 'react';
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import { arrayMove }        from '@dnd-kit/sortable';
+import KanbanColumn         from './KanbanColumn';
+import TaskCard             from './TaskCard';
 import { updateTaskStatus } from '@/lib/actions/task.actions';
-import { toast } from 'sonner';
-import KanbanColumn from './KanbanColumn';
+import { toast }            from 'sonner';
 
 export type TaskStatus = 'todo' | 'in-progress' | 'in-review' | 'done';
 
 export interface Task {
-  _id: string;
-  title: string;
-  description: string;
-  status: TaskStatus;
-  priority: 'low' | 'medium' | 'high';
-  order: number;
-  assignee?: { id: string; name: string; image?: string };
-  dueDate?: string;
+  _id:          string;
+  title:        string;
+  description?: string;
+  status:       TaskStatus;
+  priority:     'low' | 'medium' | 'high';
+  order:        number;
+  assignee?:    { _id: string; name: string; image?: string };
+  dueDate?:     string;
 }
 
-export const COLUMNS: { id: TaskStatus; label: string } [] = [
+export const COLUMNS: { id: TaskStatus; label: string }[] = [
   { id: 'todo',        label: '📋 To Do'      },
   { id: 'in-progress', label: '🔄 In Progress' },
   { id: 'in-review',   label: '👀 In Review'   },
@@ -36,96 +38,127 @@ export const COLUMNS: { id: TaskStatus; label: string } [] = [
 ];
 
 interface Props {
-  projectId: string;
-  initialTasks: Task[];
-  members: { _id: string; name: string; image?: string}[];
+  projectId:     string;
+  initialTasks:  Task[];
+  currentUserId: string;
+  members:       { _id: string; name: string; image?: string }[];
 }
 
+export default function KanbanBoard({
+  projectId,
+  initialTasks,
+  members,
+  currentUserId,
+}: Props) {
+  const [tasks, setTasks]           = useState<Task[]>(initialTasks);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
 
-
-export default function KanbanBoard({ projectId, initialTasks, members}: Props) {
-
-  const [tasks, setTasks]  = useState<Task[]>(initialTasks);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [isMoving, setIsMoving] = useState(false);
-
-  // const sensors = useSensors(
-  //   useSensor(PointerSensor, {
-  //     activationConstraint: { distance: 5 },
-  //   })
-  // );
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    })
+  );
 
   function getColumnTasks(status: TaskStatus) {
-    return tasks.filter((t) => t.status === status).sort((a,b) => a.order - b.order);
+    return tasks
+      .filter((t) => t.status === status)
+      .sort((a, b) => a.order - b.order);
   }
-  // function handleTaskClick(task: Task){
-  //   setSelectedTask((prev) => (prev?._id === task._id ? null : task));
-  // }
 
-  async function handleMoveToColumn(targetStatus: TaskStatus) {
-     if (!selectedTask || selectedTask.status === targetStatus || isMoving) return;
+  function onDragStart(event: DragStartEvent) {
+    const task = tasks.find((t) => t._id === event.active.id);
+    if (task) setActiveTask(task);
+  }
 
-     const previousTasks = tasks;
-     setTasks((prev) =>
-      prev.map((t) =>
-        t._id === selectedTask._id ? { ...t, status: targetStatus } : t
-      )
-    );
-     setSelectedTask(null);
-    setIsMoving(true);
+  function onDragOver(event: DragOverEvent) {
+    const { active, over } = event;
+    if (!over) return;
 
-    try {
-      const targetColumnTasks = getColumnTasks(targetStatus);
-      const newOrder = targetColumnTasks.length; // append to end of column
-      await updateTaskStatus(selectedTask._id, targetStatus, newOrder);
-    } catch {
-      toast.error('Failed to move task');
-      setTasks(previousTasks); // rollback
-    } finally {
-      setIsMoving(false);
+    const activeId     = active.id as string;
+    const overId       = over.id   as string;
+    if (activeId === overId) return;
+
+    const dragged      = tasks.find((t) => t._id === activeId);
+    const overTask     = tasks.find((t) => t._id === overId);
+    const overIsColumn = COLUMNS.some((col) => col.id === overId);
+
+    if (!dragged) return;
+
+    // Dragged over a column directly
+    if (overIsColumn && dragged.status !== overId) {
+      setTasks((prev) =>
+        prev.map((t) =>
+          t._id === activeId ? { ...t, status: overId as TaskStatus } : t
+        )
+      );
+      return;
     }
 
+    // Dragged over a task in a different column
+    if (overTask && dragged.status !== overTask.status) {
+      setTasks((prev) =>
+        prev.map((t) =>
+          t._id === activeId ? { ...t, status: overTask.status } : t
+        )
+      );
+    }
   }
 
- return (
-    <div className="flex flex-col gap-4 h-full">
+  async function onDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    setActiveTask(null);
+    if (!over) return;
 
-      {/* Move-to picker — shown when a task is selected */}
-      {selectedTask && (
-        <div className="flex items-center gap-3 px-6 py-3 bg-muted/60 border rounded-lg mx-6">
-          <span className="text-sm text-muted-foreground font-medium shrink-0">
-            Move &quot;{selectedTask.title}&quot; to:
-          </span>
-          <div className="flex gap-2 flex-wrap">
-            {COLUMNS.map((col) => {
-              const isCurrent = col.id === selectedTask.status;
-              return (
-                <button
-                  key={col.id}
-                  disabled={isCurrent || isMoving}
-                  onClick={() => handleMoveToColumn(col.id)}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors
-                    ${isCurrent
-                      ? 'bg-primary text-primary-foreground cursor-default opacity-70'
-                      : 'bg-background border hover:bg-accent hover:text-accent-foreground cursor-pointer'
-                    }`}
-                >
-                  {col.label}
-                </button>
-              );
-            })}
-          </div>
-          <button
-            onClick={() => setSelectedTask(null)}
-            className="ml-auto text-muted-foreground hover:text-foreground text-lg leading-none"
-          >
-            ✕
-          </button>
-        </div>
-      )}
+    const activeId     = active.id as string;
+    const overId       = over.id   as string;
+    const dragged      = tasks.find((t) => t._id === activeId);
+    if (!dragged) return;
 
-      {/* Kanban columns */}
-      <div className="flex gap-4 px-6 pb-6 h-full overflow-x-auto">
+    const overIsColumn = COLUMNS.some((col) => col.id === overId);
+    const newStatus    = overIsColumn
+      ? (overId as TaskStatus)
+      : (tasks.find((t) => t._id === overId)?.status ?? dragged.status);
+
+    const columnTasks = getColumnTasks(newStatus);
+    const oldIndex    = columnTasks.findIndex((t) => t._id === activeId);
+    const newIndex    = overIsColumn
+      ? columnTasks.length
+      : columnTasks.findIndex((t) => t._id === overId);
+
+    const reordered = arrayMove(
+      columnTasks,
+      oldIndex === -1 ? columnTasks.length - 1 : oldIndex,
+      newIndex  === -1 ? columnTasks.length - 1 : newIndex
+    );
+
+    const updatedTasks = tasks.map((t) => {
+      const match = reordered.find((r) => r._id === t._id);
+      if (match) {
+        return { ...t, status: newStatus, order: reordered.indexOf(match) };
+      }
+      return t;
+    });
+
+    setTasks(updatedTasks);
+
+    // Persist to DB
+    try {
+      const newOrder = reordered.findIndex((t) => t._id === activeId);
+      await updateTaskStatus(activeId, newStatus, newOrder);
+    } catch {
+      toast.error('Failed to save task position');
+      setTasks(initialTasks); // rollback
+    }
+  }
+
+  return (
+    <DndContext
+      sensors={sensors}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDragEnd={onDragEnd}
+    >
+      <div className="flex gap-4 p-6 h-full overflow-x-auto">
         {COLUMNS.map((col) => (
           <KanbanColumn
             key={col.id}
@@ -133,12 +166,15 @@ export default function KanbanBoard({ projectId, initialTasks, members}: Props) 
             tasks={getColumnTasks(col.id)}
             projectId={projectId}
             members={members}
-            // selectedTaskId={selectedTask?._id}
-            // onTaskClick={handleTaskClick}
+            currentUserId={currentUserId}
           />
         ))}
       </div>
 
-    </div>
+      <DragOverlay>
+        {activeTask && <TaskCard task={activeTask} overlay />}
+      </DragOverlay>
+
+    </DndContext>
   );
 }
