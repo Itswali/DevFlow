@@ -12,6 +12,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { atomOneDark }   from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { toast }         from 'sonner';
@@ -51,7 +62,6 @@ export default function CommentSection({
   const [isPending, startTransition] = useTransition();
 
 useEffect(() => {
-  console.log('[CommentSection] initialComments changed:', initialComments);
   setComments(initialComments);
 }, [initialComments]);
 
@@ -131,14 +141,32 @@ useEffect(() => {
                   </div>
 
                   {/* Delete — only shown to comment author */}
-                  {comment?.author?._id === currentUserId && (
-                    <button
-                      onClick={() => handleDelete(comment._id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
+                 {comment?.author?._id === currentUserId && (
+  <AlertDialog>
+    <AlertDialogTrigger asChild>
+      <button className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive">
+        <Trash2 className="w-3.5 h-3.5" />
+      </button>
+    </AlertDialogTrigger>
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Delete comment?</AlertDialogTitle>
+        <AlertDialogDescription>
+          This comment will be permanently deleted.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <AlertDialogAction
+          onClick={() => handleDelete(comment._id)}
+          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+        >
+          Delete
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+)}
                 </div>
 
                 {/* Comment text */}

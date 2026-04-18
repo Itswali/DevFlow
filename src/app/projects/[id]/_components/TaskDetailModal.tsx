@@ -52,16 +52,13 @@ export default function TaskDetailModal({
   // Fetch comments when modal opens (lazy — only when needed)
 function handleOpen(isOpen: boolean) {
   if (isOpen) {
-    console.log('[Modal] opened, fetching comments...');
     startTransition(async () => {
       const data = await getCommentsByTask(task._id);
-      console.log('[Modal] fetched comments:', data);
       setComments(data);
       setLoaded(true);
     });
   }
   if (!isOpen) {
-    console.log('[Modal] closed, resetting');
     onClose();
     setLoaded(false);
     setComments([]);

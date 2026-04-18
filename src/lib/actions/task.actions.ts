@@ -118,9 +118,8 @@ export async function updateTask(
 export async function deleteTask(taskId: string, projectId: string) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) throw new Error('Unauthorized');
-
   await connectDB();
-
   await Task.findByIdAndDelete(taskId);
+  // await Comment.del({ task: taskId }); // clean up comments too
   revalidatePath(`/projects/${projectId}`);
 }
