@@ -5,7 +5,7 @@ export interface IComment extends Document {
   codeSnippet?: string;
   language?: string;
   task: Types.ObjectId;
-  author: Types.ObjectId;
+  author:      string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,7 +16,7 @@ const CommentSchema = new Schema<IComment>(
     codeSnippet: { type: String },
     language:    { type: String, default: 'typescript' },
     task:        { type: Schema.Types.ObjectId, ref: 'Task',  required: true },
-    author:      { type: Schema.Types.ObjectId, ref: 'User',  required: true },
+    author: { type: String, ref: 'User', required: true },
   },
   { timestamps: true }
 );

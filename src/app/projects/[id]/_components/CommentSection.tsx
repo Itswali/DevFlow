@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { createComment, deleteComment } from '@/lib/actions/comment.actions';
 import { Button }    from '@/components/ui/button';
 import { Textarea }  from '@/components/ui/textarea';
@@ -31,6 +31,7 @@ interface Props {
   projectId:     string;
   initialComments: Comment[];
   currentUserId: string;
+  isLoading?:      boolean;
 }
 
 const LANGUAGES = ['typescript', 'javascript', 'python', 'css', 'html', 'bash', 'json'];
@@ -40,6 +41,7 @@ export default function CommentSection({
   projectId,
   initialComments,
   currentUserId,
+  isLoading,
 }: Props) {
   const [comments, setComments]     = useState<Comment[]>(initialComments);
   const [content, setContent]       = useState('');
@@ -47,6 +49,11 @@ export default function CommentSection({
   const [language, setLanguage]     = useState('typescript');
   const [showSnippet, setShowSnippet] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+useEffect(() => {
+  console.log('[CommentSection] initialComments changed:', initialComments);
+  setComments(initialComments);
+}, [initialComments]);
 
   function handleSubmit() {
     if (!content.trim()) return toast.error('Comment cannot be empty');
@@ -88,12 +95,16 @@ export default function CommentSection({
     <div className="flex flex-col gap-4">
 
       {/* Comment List */}
-      <div className="space-y-4 max-h-[340px] overflow-y-auto pr-1">
-        {comments.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">
-            No comments yet. Be the first!
-          </p>
-        ) : (
+     <div className="space-y-4 max-h-85 overflow-y-auto pr-1">
+  {isLoading ? (
+    <div className="flex justify-center py-6">
+      <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+    </div>
+  ) : comments.length === 0 ? (
+    <p className="text-sm text-muted-foreground text-center py-6">
+      No comments yet. Be the first!
+    </p>
+  ) : (
           comments.map((comment) => (
             <div key={comment._id} className="flex gap-3 group">
 

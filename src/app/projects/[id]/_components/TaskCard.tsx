@@ -47,26 +47,29 @@ export default function TaskCard({
 
   return (
     <>
-      <Card
-        ref={setNodeRef}
-        style={style}
+       <Card
+      ref={setNodeRef}
+      style={style}
+      onClick={() => !isDragging && !overlay && setModalOpen(true)}
+      className={`p-3 cursor-pointer space-y-2 ${
+        overlay ? 'shadow-xl rotate-1' : 'hover:shadow-sm'
+      }`}
+    >
+      {/* Drag handle — only this area is draggable */}
+      <div
         {...attributes}
         {...listeners}
-        onClick={() => !isDragging && !overlay && setModalOpen(true)}
-        className={`p-3 cursor-grab active:cursor-grabbing space-y-2 ${
-          overlay ? 'shadow-xl rotate-1' : 'hover:shadow-sm'
-        }`}
+        className="flex items-center gap-1 cursor-grab active:cursor-grabbing -mx-1 px-1 rounded"
       >
-        {/* Title */}
-        <p className="text-sm font-medium leading-snug">{task.title}</p>
+        <p className="text-sm font-medium leading-snug flex-1">{task.title}</p>
+      </div>
 
-        {/* Description preview */}
-        {task.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2">
-            {task.description}
-          </p>
-        )}
-
+      {/* Rest of card — not draggable, click opens modal */}
+      {task.description && (
+        <p className="text-xs text-muted-foreground line-clamp-2">
+          {task.description}
+        </p>
+      )}
         {/* Footer */}
         <div className="flex items-center justify-between pt-1">
 
@@ -102,15 +105,15 @@ export default function TaskCard({
       </Card>
 
       {/* Modal — skip in DragOverlay */}
-      {projectId && currentUserId && !overlay && (
-        <TaskDetailModal
-          task={task}
-          projectId={projectId}
-          currentUserId={currentUserId}
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-        />
-      )}
-    </>
-  );
+{projectId && currentUserId && !overlay && (
+      <TaskDetailModal
+        task={task}
+        projectId={projectId}
+        currentUserId={currentUserId}
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+      />
+    )}
+  </>
+);
 }

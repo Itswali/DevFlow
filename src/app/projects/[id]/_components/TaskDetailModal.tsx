@@ -13,7 +13,7 @@ import {
 import { Badge }   from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CalendarDays, Loader2 } from 'lucide-react';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 
 const priorityStyles = {
   low:    'bg-slate-100  text-slate-600',
@@ -40,17 +40,33 @@ export default function TaskDetailModal({
   const [loaded,   setLoaded]       = useState(false);
   const [isPending, startTransition] = useTransition();
 
+  useEffect(() => {
+  if (!open) return;
+  startTransition(async () => {
+    const data = await getCommentsByTask(task._id);
+    setComments(data);
+    setLoaded(true);
+  });
+}, [open, task._id]);
+
   // Fetch comments when modal opens (lazy — only when needed)
-  function handleOpen(isOpen: boolean) {
-    if (isOpen && !loaded) {
-      startTransition(async () => {
-        const data = await getCommentsByTask(task._id);
-        setComments(data);
-        setLoaded(true);
-      });
-    }
-    if (!isOpen) onClose();
+function handleOpen(isOpen: boolean) {
+  if (isOpen) {
+    console.log('[Modal] opened, fetching comments...');
+    startTransition(async () => {
+      const data = await getCommentsByTask(task._id);
+      console.log('[Modal] fetched comments:', data);
+      setComments(data);
+      setLoaded(true);
+    });
   }
+  if (!isOpen) {
+    console.log('[Modal] closed, resetting');
+    onClose();
+    setLoaded(false);
+    setComments([]);
+  }
+}
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
@@ -111,18 +127,14 @@ export default function TaskDetailModal({
             <p className="text-xs text-muted-foreground font-medium mb-3">
               Comments
             </p>
-            {isPending ? (
-              <div className="flex justify-center py-6">
-                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-              </div>
-            ) : (
-              <CommentSection
-                taskId={task._id}
-                projectId={projectId}
-                initialComments={comments}
-                currentUserId={currentUserId}
-              />
-            )}
+  {/* DELETE the isPending ternary entirely — just always render CommentSection */}
+  <CommentSection
+    taskId={task._id}
+    projectId={projectId}
+    initialComments={comments}
+    currentUserId={currentUserId}
+    isLoading={isPending}
+  />
           </div>
 
         </div>
