@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -11,11 +11,13 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { arrayMove }        from '@dnd-kit/sortable';
-import KanbanColumn         from './KanbanColumn';
-import TaskCard             from './TaskCard';
-import { updateTaskStatus } from '@/lib/actions/task.actions';
-import { toast }            from 'sonner';
+import { arrayMove }              from '@dnd-kit/sortable';
+import KanbanColumn               from './KanbanColumn';
+import KanbanFilters              from './KanbanFilters';
+import TaskCard                   from './TaskCard';
+import { updateTaskStatus }       from '@/lib/actions/task.actions';
+import { useAppSelector }         from '@/store/hooks';
+import { toast }                  from 'sonner';
 
 export type TaskStatus = 'todo' | 'in-progress' | 'in-review' | 'done';
 
@@ -53,14 +55,30 @@ export default function KanbanBoard({
   const [tasks, setTasks]           = useState<Task[]>(initialTasks);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
+  // Read filters from Redux
+  const filterPriority = useAppSelector((s) => s.ui.filterPriority);
+  const filterAssignee = useAppSelector((s) => s.ui.filterAssigneeId);
+
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 5 },
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
+  // useMemo — filtered + sorted tasks only recompute when dependencies change
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      const priorityMatch =
+        filterPriority === 'all' || task.priority === filterPriority;
+
+      const assigneeMatch =
+        filterAssignee === null || task.assignee?._id === filterAssignee;
+
+      return priorityMatch && assigneeMatch;
+    });
+  }, [tasks, filterPriority, filterAssignee]);
+
+  // Get tasks for a column — uses filteredTasks, not raw tasks
   function getColumnTasks(status: TaskStatus) {
-    return tasks
+    return filteredTasks
       .filter((t) => t.status === status)
       .sort((a, b) => a.order - b.order);
   }
@@ -84,7 +102,6 @@ export default function KanbanBoard({
 
     if (!dragged) return;
 
-    // Dragged over a column directly
     if (overIsColumn && dragged.status !== overId) {
       setTasks((prev) =>
         prev.map((t) =>
@@ -94,7 +111,6 @@ export default function KanbanBoard({
       return;
     }
 
-    // Dragged over a task in a different column
     if (overTask && dragged.status !== overTask.status) {
       setTasks((prev) =>
         prev.map((t) =>
@@ -141,40 +157,46 @@ export default function KanbanBoard({
 
     setTasks(updatedTasks);
 
-    // Persist to DB
     try {
       const newOrder = reordered.findIndex((t) => t._id === activeId);
       await updateTaskStatus(activeId, newStatus, newOrder);
     } catch {
       toast.error('Failed to save task position');
-      setTasks(initialTasks); // rollback
+      setTasks(initialTasks);
     }
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDragEnd={onDragEnd}
-    >
-      <div className="flex gap-4 p-6 h-full overflow-x-auto">
-        {COLUMNS.map((col) => (
-          <KanbanColumn
-            key={col.id}
-            column={col}
-            tasks={getColumnTasks(col.id)}
-            projectId={projectId}
-            members={members}
-            currentUserId={currentUserId}
-          />
-        ))}
-      </div>
+    <div className="flex flex-col h-full">
 
-      <DragOverlay>
-        {activeTask && <TaskCard task={activeTask} overlay />}
-      </DragOverlay>
+      {/* Filter Bar */}
+      <KanbanFilters members={members} />
 
-    </DndContext>
+      {/* Board */}
+      <DndContext
+        sensors={sensors}
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDragEnd={onDragEnd}
+      >
+        <div className="flex gap-4 p-6 flex-1 overflow-x-auto">
+          {COLUMNS.map((col) => (
+            <KanbanColumn
+              key={col.id}
+              column={col}
+              tasks={getColumnTasks(col.id)}
+              projectId={projectId}
+              members={members}
+              currentUserId={currentUserId}
+            />
+          ))}
+        </div>
+
+        <DragOverlay>
+          {activeTask && <TaskCard task={activeTask} overlay />}
+        </DragOverlay>
+      </DndContext>
+
+    </div>
   );
 }
