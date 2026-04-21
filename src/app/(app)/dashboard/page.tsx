@@ -1,7 +1,6 @@
 import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
-import { LogoutButton } from "@/components/LogoutButton";
-import Page from "../page";
+import Page from "@/app/page";
 
 
 export default async function DashboardPage() {
@@ -18,7 +17,6 @@ export default async function DashboardPage() {
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">
               Welcome, {session.user.name}
             </h1>
-            <LogoutButton />
           </div>
           <div className="mt-8">{/* Content goes here */}</div>
         </main>

@@ -18,7 +18,7 @@ export default async function ProjectPage({ params }: Props) {
     getTasksByProject(id),
   ]);
 
-  if (!session) redirect('/sign-in');
+  if (!session) redirect('/auth/login');
   if (!project) notFound();
 
   return (
