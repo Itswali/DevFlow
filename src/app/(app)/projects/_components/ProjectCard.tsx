@@ -2,6 +2,7 @@ import Link  from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage }      from '@/components/ui/avatar';
 import { CalendarDays, ArrowRight }                 from 'lucide-react';
+import DeleteButton from '@/components/DeleteButton';
 
 interface Props {
   project: {
@@ -82,6 +83,7 @@ export default function ProjectCard({ project }: Props) {
                 day:   'numeric',
                 year:  'numeric',
               })}
+                <DeleteButton projectId={project._id} />
             </div>
 
           </div>

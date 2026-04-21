@@ -57,6 +57,19 @@ export default function Sidebar({ projects }: Props) {
           <LayoutDashboard className="w-4 h-4 shrink-0" />
           {!collapsed && <span>Dashboard</span>}
         </Link>
+        <Link
+          href="/projects"
+          className={cn(
+            'flex items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors',
+            'hover:bg-muted',
+            pathname === '/dashboard'
+              ? 'bg-muted font-medium'
+              : 'text-muted-foreground',
+            collapsed && 'justify-center px-0'
+          )}
+        >Project
+
+        </Link>
 
         {/* Projects */}
         {!collapsed && (

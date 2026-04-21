@@ -26,6 +26,7 @@ export default function KanbanColumn({
   column,
   tasks,
   projectId,
+  members = [],
   currentUserId,
 }: Props) {
   const [adding, setAdding]          = useState(false);
@@ -91,6 +92,7 @@ export default function KanbanColumn({
               task={task}
               projectId={projectId}
               currentUserId={currentUserId}
+              members={members}
             />
           ))}
         </SortableContext>

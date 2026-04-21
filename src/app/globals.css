@@ -128,3 +128,29 @@
     @apply font-sans;
   }
 }
+/* Smooth page feel */
+* {
+  -webkit-font-smoothing:  antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar polish */
+::-webkit-scrollbar {
+  width:  6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Kanban drag overlay feel */
+[data-dnd-kit-drag-overlay] {
+  cursor: grabbing !important;
+}

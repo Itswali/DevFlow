@@ -31,10 +31,11 @@ interface Props {
   task:           Task;
   projectId?:     string;
   currentUserId?: string;
+  members?:       { _id: string; name: string; image?: string }[];
   overlay?:       boolean;
 }
 
-export default function TaskCard({ task, projectId, currentUserId, overlay }: Props) {
+export default function TaskCard({ task, projectId, currentUserId, members = [], overlay }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [deleting,  setDeleting]  = useState(false);
 
@@ -153,6 +154,7 @@ export default function TaskCard({ task, projectId, currentUserId, overlay }: Pr
           projectId={projectId}
           currentUserId={currentUserId}
           open={modalOpen}
+          members={members}
           onClose={() => setModalOpen(false)}
         />
       )}
