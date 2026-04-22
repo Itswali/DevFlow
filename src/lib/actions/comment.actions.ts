@@ -6,21 +6,7 @@ import { headers }    from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import mongoose       from 'mongoose';
 
-async function attachAuthors(comments: any[]) {
-  if (comments.length === 0) return comments;
-  const ids = [...new Set(comments.map((c) => c.author))];
-  const users = await mongoose.connection.db!
-    .collection('user')
-    .find({ id: { $in: ids } })
-    .toArray();
-  const map = Object.fromEntries(users.map((u) => [u.id, u]));
-  return comments.map((c) => ({
-    ...c,
-    author: map[c.author]
-      ? { _id: map[c.author].id, name: map[c.author].name, image: map[c.author].image ?? null }
-      : { _id: c.author, name: 'Unknown', image: null },
-  }));
-}
+
 
 export async function createComment(formData: {
   content:      string;
@@ -31,9 +17,10 @@ export async function createComment(formData: {
 }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) throw new Error('Unauthorized');
+
   await connectDB();
 
-  const created = await Comment.create({
+  const comment = await Comment.create({
     content:     formData.content,
     codeSnippet: formData.codeSnippet,
     language:    formData.language ?? 'typescript',
@@ -41,33 +28,73 @@ export async function createComment(formData: {
     author:      session.user.id,
   });
 
-  // Fetch from Better-Auth's 'user' collection
-  const user = await mongoose.connection.db!
-    .collection('user')
-    .findOne({ id: session.user.id });
-
-  const comment = {
-    ...JSON.parse(JSON.stringify(created)),
-    author: {
-      _id:   session.user.id,
-      name:  user?.name  ?? session.user.name,
-      image: user?.image ?? null,
-    },
-  };
+  // Fetch author from Better-Auth collection
+  const db     = mongoose.connection.db!;
+  const author = await db.collection('user').findOne({
+    _id: new mongoose.Types.ObjectId(session.user.id),
+  });
 
   revalidatePath(`/projects/${formData.projectId}`);
-  return comment;
+
+  return JSON.parse(JSON.stringify({
+    _id:         comment._id.toString(),
+    content:     comment.content,
+    codeSnippet: comment.codeSnippet,
+    language:    comment.language,
+    task:        comment.task.toString(),
+    author: {
+      _id:   session.user.id,
+      name:  author?.name  ?? session.user.name,
+      email: author?.email ?? session.user.email,
+      image: author?.image ?? null,
+    },
+    createdAt: comment.createdAt,
+    updatedAt: comment.updatedAt,
+  }));
 }
 
 export async function getCommentsByTask(taskId: string) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) throw new Error('Unauthorized');
+
   await connectDB();
 
-  const raw = await Comment.find({ task: taskId }).sort({ createdAt: 1 }).lean();
-  const withAuthors = await attachAuthors(JSON.parse(JSON.stringify(raw)));
-  return withAuthors;
+  const comments = await Comment.find({ task: taskId })
+    .sort({ createdAt: 1 })
+    .lean();
+
+  if (!comments.length) return [];
+
+  const db      = mongoose.connection.db!;
+  const userIds = [...new Set(comments.map((c) => c.author.toString()))];
+
+  const users = await db.collection('user').find({
+    _id: { $in: userIds.map((id) => new mongoose.Types.ObjectId(id)) },
+  }).toArray();
+
+  const userMap = Object.fromEntries(
+    users.map((u) => [u._id.toString(), {
+      _id:   u._id.toString(),
+      name:  u.name,
+      email: u.email,
+      image: u.image ?? null,
+    }])
+  );
+
+  return JSON.parse(JSON.stringify(
+    comments.map((c) => ({
+      _id:         c._id.toString(),
+      content:     c.content,
+      codeSnippet: c.codeSnippet,
+      language:    c.language,
+      task:        c.task.toString(),
+      author:      userMap[c.author.toString()] ?? { _id: c.author.toString(), name: 'Unknown', image: null },
+      createdAt:   c.createdAt,
+      updatedAt:   c.updatedAt,
+    }))
+  ));
 }
+
 
 export async function deleteComment(commentId: string, projectId: string) {
   const session = await auth.api.getSession({ headers: await headers() });

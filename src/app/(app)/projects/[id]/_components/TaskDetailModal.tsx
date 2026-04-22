@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition }  from 'react';
+import { useEffect, useState, useTransition }  from 'react';
 import { Task }                     from './KanbanBoard';
 import { getCommentsByTask }        from '@/lib/actions/comment.actions';
 import { updateTask }               from '@/lib/actions/task.actions';
@@ -58,19 +58,19 @@ export default function TaskDetailModal({
     task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : ''
   );
 
-  function handleOpen(isOpen: boolean) {
-  if (isOpen) {
+// Remove handleOpen entirely and replace with this:
+useEffect(() => {
+  if (!open) {
     setComments([]);
-    startCommentTransition(async () => {  // 👈 use comment transition
-      const data = await getCommentsByTask(task._id);
-      setComments(data);
-    });
+    return;
   }
-  if (!isOpen) {
-    onClose();
-    setComments([]);
-  }
-}
+
+  // open === true: fetch comments
+  startCommentTransition(async () => {
+    const data = await getCommentsByTask(task._id);
+    setComments(data);
+  });
+}, [open, task._id]);
 
   function handleSaveTitle() {
     if (!title.trim()) return toast.error('Title cannot be empty');
@@ -99,7 +99,7 @@ export default function TaskDetailModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpen}>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
 
         <DialogHeader>
