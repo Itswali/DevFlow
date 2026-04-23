@@ -1,14 +1,10 @@
 'use client';
-
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { toggleSidebar }                  from '@/store/slices/uiSlice';
-import { Button }                         from '@/components/ui/button';
+import { useUIStore } from '@/store/uiStore';
+import { Button }       from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
+  DropdownMenu, DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Menu, LogOut, User } from 'lucide-react';
@@ -16,37 +12,30 @@ import { authClient }         from '@/lib/auth/auth-client';
 import { useRouter }          from 'next/navigation';
 
 interface Props {
-  user: {
-    name:   string;
-    email:  string;
-    image?: string;
-  };
+  user: { name: string; email: string; image?: string };
 }
 
 export default function Navbar({ user }: Props) {
-  const dispatch  = useAppDispatch();
-  const collapsed = useAppSelector((s) => s.ui.sidebarCollapsed);
-  const router    = useRouter();
+  const toggleSidebar = useUIStore((s) => s.toggleSidebar);
+  const router        = useRouter();
 
   async function handleSignOut() {
     await authClient.signOut();
-    router.push('/auth/login');
+    router.push('/sign-in');
   }
 
   return (
     <header className="h-14 border-b flex items-center justify-between px-4 shrink-0 bg-background">
 
-      {/* Left — hamburger */}
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => dispatch(toggleSidebar())}
+        onClick={toggleSidebar}
         aria-label="Toggle sidebar"
       >
         <Menu className="w-5 h-5" />
       </Button>
 
-      {/* Right — user menu */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-2 rounded-full outline-none">

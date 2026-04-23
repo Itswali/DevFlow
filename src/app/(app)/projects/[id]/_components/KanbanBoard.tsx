@@ -16,7 +16,7 @@ import KanbanColumn               from './KanbanColumn';
 import KanbanFilters              from './KanbanFilters';
 import TaskCard                   from './TaskCard';
 import { updateTaskStatus }       from '@/lib/actions/task.actions';
-import { useAppSelector }         from '@/store/hooks';
+import { useUIStore } from '@/store/uiStore';
 import { toast }                  from 'sonner';
 
 export type TaskStatus = 'todo' | 'in-progress' | 'in-review' | 'done';
@@ -55,9 +55,9 @@ export default function KanbanBoard({
   const [tasks, setTasks]           = useState<Task[]>(initialTasks);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
-  // Read filters from Redux
-  const filterPriority = useAppSelector((s) => s.ui.filterPriority);
-  const filterAssignee = useAppSelector((s) => s.ui.filterAssigneeId);
+  // Read filters from Zustand
+  const filterPriority = useUIStore((s) => s.filterPriority);
+const filterAssignee = useUIStore((s) => s.filterAssigneeId);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })

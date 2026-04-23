@@ -1,33 +1,27 @@
 'use client';
 
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { setActiveProject }               from '@/store/slices/uiSlice';
-import Link                               from 'next/link';
-import { usePathname }                    from 'next/navigation';
+import { useUIStore }   from '@/store/uiStore';
+import Link             from 'next/link';
+import { usePathname }  from 'next/navigation';
 import { LayoutDashboard, FolderKanban, ChevronLeft } from 'lucide-react';
-import { cn }                             from '@/lib/utils';
-
-interface Project {
-  _id:  string;
-  name: string;
-}
+import { cn }           from '@/lib/utils';
 
 interface Props {
-  projects: Project[];
+  projects: { _id: string; name: string }[];
 }
 
 export default function Sidebar({ projects }: Props) {
-  const dispatch  = useAppDispatch();
-  const collapsed = useAppSelector((s) => s.ui.sidebarCollapsed);
-  const pathname  = usePathname();
+  const collapsed        = useUIStore((s) => s.sidebarCollapsed);
+  const toggleSidebar    = useUIStore((s) => s.toggleSidebar);
+  const setActiveProject = useUIStore((s) => s.setActiveProject);
+  const pathname         = usePathname();
 
   return (
-    <aside
-      className={cn(
-        'flex flex-col border-r bg-background transition-all duration-300 shrink-0',
-        collapsed ? 'w-14' : 'w-56'
-      )}
-    >
+    <aside className={cn(
+      'flex flex-col border-r bg-background transition-all duration-300 shrink-0',
+      collapsed ? 'w-14' : 'w-56'
+    )}>
+
       {/* Logo */}
       <div className={cn(
         'h-14 flex items-center border-b px-4 gap-2 shrink-0',
@@ -39,39 +33,21 @@ export default function Sidebar({ projects }: Props) {
         )}
       </div>
 
-      {/* Nav Links */}
+      {/* Nav */}
       <nav className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
 
-        {/* Dashboard */}
         <Link
           href="/dashboard"
           className={cn(
-            'flex items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors',
-            'hover:bg-muted',
-            pathname === '/dashboard'
-              ? 'bg-muted font-medium'
-              : 'text-muted-foreground',
+            'flex items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors hover:bg-muted',
+            pathname === '/dashboard' ? 'bg-muted font-medium' : 'text-muted-foreground',
             collapsed && 'justify-center px-0'
           )}
         >
           <LayoutDashboard className="w-4 h-4 shrink-0" />
           {!collapsed && <span>Dashboard</span>}
         </Link>
-        <Link
-          href="/projects"
-          className={cn(
-            'flex items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors',
-            'hover:bg-muted',
-            pathname === '/dashboard'
-              ? 'bg-muted font-medium'
-              : 'text-muted-foreground',
-            collapsed && 'justify-center px-0'
-          )}
-        >Project
 
-        </Link>
-
-        {/* Projects */}
         {!collapsed && (
           <p className="text-xs text-muted-foreground px-2 pt-4 pb-1 font-medium uppercase tracking-wider">
             Projects
@@ -84,13 +60,10 @@ export default function Sidebar({ projects }: Props) {
             <Link
               key={project._id}
               href={`/projects/${project._id}`}
-              onClick={() => dispatch(setActiveProject(project._id))}
+              onClick={() => setActiveProject(project._id)}
               className={cn(
-                'flex items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors',
-                'hover:bg-muted',
-                isActive
-                  ? 'bg-muted font-medium'
-                  : 'text-muted-foreground',
+                'flex items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors hover:bg-muted',
+                isActive ? 'bg-muted font-medium' : 'text-muted-foreground',
                 collapsed && 'justify-center px-0'
               )}
             >
@@ -99,18 +72,16 @@ export default function Sidebar({ projects }: Props) {
                   {project.name[0].toUpperCase()}
                 </span>
               </div>
-              {!collapsed && (
-                <span className="truncate">{project.name}</span>
-              )}
+              {!collapsed && <span className="truncate">{project.name}</span>}
             </Link>
           );
         })}
       </nav>
 
-      {/* Collapse toggle at bottom */}
+      {/* Collapse toggle */}
       <div className="p-2 border-t">
         <button
-          onClick={() => dispatch(toggleSidebar())}
+          onClick={toggleSidebar}
           className={cn(
             'w-full flex items-center gap-2 rounded-md px-2 py-2 text-sm',
             'text-muted-foreground hover:bg-muted transition-colors',

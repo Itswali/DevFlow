@@ -1,47 +1,34 @@
 'use client';
 
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useUIStore } from '@/store/uiStore';
+import { Button }     from '@/components/ui/button';
 import {
-  setFilterPriority,
-  setFilterAssignee,
-  resetFilters,
-} from '@/store/slices/uiSlice';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent,
+  SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { X } from 'lucide-react';
 
 interface Member {
-  _id:    string;
-  name:   string;
-  image?: string;
+  _id: string; name: string; image?: string;
 }
 
-interface Props {
-  members: Member[];
-}
-
-export default function KanbanFilters({ members }: Props) {
-  const dispatch       = useAppDispatch();
-  const filterPriority = useAppSelector((s) => s.ui.filterPriority);
-  const filterAssignee = useAppSelector((s) => s.ui.filterAssigneeId);
+export default function KanbanFilters({ members }: { members: Member[] }) {
+  const filterPriority  = useUIStore((s) => s.filterPriority);
+  const filterAssignee  = useUIStore((s) => s.filterAssigneeId);
+  const setFilterPriority = useUIStore((s) => s.setFilterPriority);
+  const setFilterAssignee = useUIStore((s) => s.setFilterAssignee);
+  const resetFilters    = useUIStore((s) => s.resetFilters);
 
   const isFiltered = filterPriority !== 'all' || filterAssignee !== null;
 
   return (
     <div className="flex items-center gap-2 px-6 py-2 border-b flex-wrap">
 
-      {/* Priority Filter */}
       <Select
         value={filterPriority}
         onValueChange={(val) =>
-          dispatch(setFilterPriority(val as 'all' | 'low' | 'medium' | 'high'))
+          setFilterPriority(val as 'all' | 'low' | 'medium' | 'high')
         }
       >
         <SelectTrigger className="h-8 w-36 text-xs">
@@ -55,12 +42,9 @@ export default function KanbanFilters({ members }: Props) {
         </SelectContent>
       </Select>
 
-      {/* Assignee Filter */}
       <Select
         value={filterAssignee ?? 'all'}
-        onValueChange={(val) =>
-          dispatch(setFilterAssignee(val === 'all' ? null : val))
-        }
+        onValueChange={(val) => setFilterAssignee(val === 'all' ? null : val)}
       >
         <SelectTrigger className="h-8 w-40 text-xs">
           <SelectValue placeholder="Assignee" />
@@ -83,20 +67,18 @@ export default function KanbanFilters({ members }: Props) {
         </SelectContent>
       </Select>
 
-      {/* Reset button — only shown when filters are active */}
       {isFiltered && (
         <Button
           variant="ghost"
           size="sm"
           className="h-8 text-xs text-muted-foreground"
-          onClick={() => dispatch(resetFilters())}
+          onClick={resetFilters}
         >
           <X className="w-3 h-3 mr-1" />
           Clear filters
         </Button>
       )}
 
-      {/* Active filter indicators */}
       {filterPriority !== 'all' && (
         <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
           {filterPriority} priority

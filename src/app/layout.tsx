@@ -1,4 +1,3 @@
-import ReduxProvider from '@/components/providers/ReduxProvider';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -30,7 +29,6 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="bg-slate-50">
-        <ReduxProvider>
 
         {/* Main Wrapper */}
         <div className="flex h-screen w-full p-4 gap-4">
@@ -43,7 +41,6 @@ export default function RootLayout({
 
         </div>
 <Toaster richColors position="top-right" />
-        </ReduxProvider>
       </body>
     </html>
   );
