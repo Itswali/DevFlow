@@ -21,7 +21,7 @@ export default function Navbar({ user }: Props) {
 
   async function handleSignOut() {
     await authClient.signOut();
-    router.push('/sign-in');
+    router.push('/auth/login');
   }
 
   return (

@@ -74,8 +74,8 @@ export default async function ProjectPage({ params }: Props) {
             <ManageMembersModal
   projectId={id}
   members={project.members}
-  ownerEmail={project.owner?.email ?? ''}        // 👈 safe access
-  currentUserEmail={session.user.email ?? ''}    // 👈 safe access
+  ownerId={project.owner._id}        // ← was owner.email
+  currentUserId={session.user.id}    // 👈 safe access
 />
             {project.members.length > 5 && (
               <div className="w-7 h-7 rounded-full bg-muted border-2 border-background flex items-center justify-center text-[10px] text-muted-foreground">
