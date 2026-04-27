@@ -1,95 +1,149 @@
-import Link  from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage }      from '@/components/ui/avatar';
-import { CalendarDays, ArrowRight }                 from 'lucide-react';
-import DeleteButton from '@/components/DeleteButton';
+'use client';
+
+import Link from 'next/link';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { CheckCircle2 } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+
+interface Member {
+  _id:    string;
+  name:   string;
+  image?: string;
+}
 
 interface Props {
   project: {
-    _id:          string;
-    name:         string;
+    _id:         string;
+    name:        string;
     description?: string;
-    owner:        { name: string; image?: string };
-    members:      { _id: string; name: string; image?: string }[];
-    createdAt:    string;
+    members:     Member[];
+    createdAt:   string;
+    updatedAt:   string;
   };
+  doneTasks:  number;
+  totalTasks: number;
 }
 
-export default function ProjectCard({ project }: Props) {
+// Deterministic accent color based on project name
+const ACCENTS = [
+  '#6366f1', // indigo
+  '#ef4444', // red
+  '#22c55e', // green
+  '#f59e0b', // amber
+  '#3b82f6', // blue
+  '#ec4899', // pink
+  '#14b8a6', // teal
+  '#8b5cf6', // violet
+];
+
+function getAccent(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return ACCENTS[Math.abs(hash) % ACCENTS.length];
+}
+
+export default function ProjectCard({ project, doneTasks, totalTasks }: Props) {
+  const accent   = getAccent(project.name);
+  const progress = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+  const maxAvatars = 3;
+  const visibleMembers  = project.members.slice(0, maxAvatars);
+  const extraMembers    = project.members.length - maxAvatars;
+  const updatedAt = formatDistanceToNow(new Date(project.updatedAt), { addSuffix: true });
+
   return (
-    <Link href={`/projects/${project._id}`}>
-      <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full group">
+    <Link href={`/projects/${project._id}`} className="block group">
+      <div className="relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
 
-        <CardHeader className="pb-2">
-          <div className="flex items-start justify-between gap-2">
+        {/* Colored top border */}
+        <div
+          className="absolute top-0 left-0 right-0 h-0.75"
+          style={{ backgroundColor: accent }}
+        />
 
-            {/* Project initial icon */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <span className="text-sm font-bold text-primary">
-                  {project?.name?.[0]?.toUpperCase()}
-                </span>
-              </div>
-              <CardTitle className="text-base leading-tight">
-                {project.name}
-              </CardTitle>
-            </div>
+        <div className="p-6 pt-7">
 
-            <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5" />
+          {/* Title + dot */}
+          <div className="flex items-center gap-2 mb-1.5">
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ backgroundColor: accent }}
+            />
+            <h3 className="text-base font-semibold text-gray-900 group-hover:text-gray-700 transition-colors leading-tight truncate">
+              {project.name}
+            </h3>
           </div>
-        </CardHeader>
-
-        <CardContent className="space-y-4">
 
           {/* Description */}
-          {project.description ? (
-            <p className="text-sm text-muted-foreground line-clamp-2">
+          {project.description && (
+            <p className="text-sm text-gray-500 mb-5 line-clamp-1 pl-4.5">
               {project.description}
-            </p>
-          ) : (
-            <p className="text-sm text-muted-foreground/50 italic">
-              No description
             </p>
           )}
 
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-1">
+          {/* Progress */}
+          <div className="mb-5">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs text-gray-500 font-medium">Progress</span>
+              <span className="text-xs font-semibold text-gray-700">{progress}%</span>
+            </div>
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${progress}%`, backgroundColor: accent }}
+              />
+            </div>
+          </div>
 
-            {/* Member Avatars */}
-            <div className="flex -space-x-2">
-              {project.members.slice(0, 4).map((member) => (
-                <Avatar
-                  key={member._id}
-                  className="w-6 h-6 border-2 border-background"
-                >
-                  <AvatarImage src={member.image} />
-                  <AvatarFallback className="text-[10px]">
-                    {member?.name?.[0]?.toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
-              {project.members.length > 4 && (
-                <div className="w-6 h-6 rounded-full bg-muted border-2 border-background flex items-center justify-center text-[10px] text-muted-foreground">
-                  +{project.members.length - 4}
-                </div>
-              )}
+          {/* Members + Task count */}
+          <div className="flex items-center justify-between">
+
+            {/* Stacked avatars */}
+            <div className="flex items-center gap-2">
+              <div className="flex -space-x-2">
+                {visibleMembers.map((member) => (
+                  <Avatar
+                    key={member._id}
+                    className="w-7 h-7 border-2 border-white ring-0"
+                  >
+                    <AvatarImage src={member.image} />
+                    <AvatarFallback
+                      className="text-[10px] font-semibold text-white"
+                      style={{ backgroundColor: accent }}
+                    >
+                      {member.name[0].toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                ))}
+                {extraMembers > 0 && (
+                  <div className="w-7 h-7 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] font-semibold text-gray-600">
+                    +{extraMembers}
+                  </div>
+                )}
+              </div>
+              <span className="text-xs text-gray-500">
+                {project.members.length} member{project.members.length !== 1 ? 's' : ''}
+              </span>
             </div>
 
-            {/* Date */}
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <CalendarDays className="w-3 h-3" />
-              {new Date(project.createdAt).toLocaleDateString('en-US', {
-                month: 'short',
-                day:   'numeric',
-                year:  'numeric',
-              })}
-                <DeleteButton projectId={project._id} />
+            {/* Done / Total */}
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-gray-400" style={{ color: accent }} />
+              <span className="text-sm font-medium text-gray-600">
+                {doneTasks}/{totalTasks}
+              </span>
             </div>
 
           </div>
-        </CardContent>
 
-      </Card>
+          {/* Updated at */}
+          <p className="text-xs text-gray-400 mt-4">
+            Updated {updatedAt}
+          </p>
+
+        </div>
+      </div>
     </Link>
   );
 }
