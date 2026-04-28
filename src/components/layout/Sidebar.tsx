@@ -1,10 +1,9 @@
 'use client';
-
-import { useUIStore }   from '@/store/uiStore';
-import Link             from 'next/link';
-import { usePathname }  from 'next/navigation';
-import { LayoutDashboard, FolderKanban, ChevronLeft } from 'lucide-react';
-import { cn }           from '@/lib/utils';
+import { useUIStore }    from '@/store/uiStore';
+import Link              from 'next/link';
+import { usePathname }   from 'next/navigation';
+import { LayoutDashboard, FolderKanban, ChevronLeft, Users } from 'lucide-react';
+import { cn }            from '@/lib/utils';
 
 interface Props {
   projects: { _id: string; name: string }[];
@@ -16,38 +15,45 @@ export default function Sidebar({ projects }: Props) {
   const setActiveProject = useUIStore((s) => s.setActiveProject);
   const pathname         = usePathname();
 
+  const navLinks = [
+    { href: '/dashboard', icon: <LayoutDashboard className="w-4 h-4 shrink-0" />, label: 'Dashboard' },
+    { href: '/team',      icon: <Users           className="w-4 h-4 shrink-0" />, label: 'Team'      },
+  ];
+
   return (
     <aside className={cn(
       'flex flex-col border-r bg-background transition-all duration-300 shrink-0',
       collapsed ? 'w-14' : 'w-56'
     )}>
-
       {/* Logo */}
       <div className={cn(
         'h-14 flex items-center border-b px-4 gap-2 shrink-0',
         collapsed && 'justify-center px-0'
       )}>
         <FolderKanban className="w-5 h-5 text-primary shrink-0" />
-        {!collapsed && (
-          <span className="font-bold text-base tracking-tight">DevFlow</span>
-        )}
+        {!collapsed && <span className="font-bold text-base tracking-tight">DevFlow</span>}
       </div>
 
       {/* Nav */}
       <nav className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
 
-        <Link
-          href="/dashboard"
-          className={cn(
-            'flex items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors hover:bg-muted',
-            pathname === '/dashboard' ? 'bg-muted font-medium' : 'text-muted-foreground',
-            collapsed && 'justify-center px-0'
-          )}
-        >
-          <LayoutDashboard className="w-4 h-4 shrink-0" />
-          {!collapsed && <span>Dashboard</span>}
-        </Link>
+        {/* Top-level nav links */}
+        {navLinks.map(({ href, icon, label }) => (
+          <Link
+            key={href}
+            href={href}
+            className={cn(
+              'flex items-center gap-2.5 rounded-md px-2 py-2 text-sm transition-colors hover:bg-muted',
+              pathname === href ? 'bg-muted font-medium' : 'text-muted-foreground',
+              collapsed && 'justify-center px-0'
+            )}
+          >
+            {icon}
+            {!collapsed && <span>{label}</span>}
+          </Link>
+        ))}
 
+        {/* Projects section */}
         {!collapsed && (
           <p className="text-xs text-muted-foreground px-2 pt-4 pb-1 font-medium uppercase tracking-wider">
             Projects
@@ -95,7 +101,6 @@ export default function Sidebar({ projects }: Props) {
           {!collapsed && <span>Collapse</span>}
         </button>
       </div>
-
     </aside>
   );
 }

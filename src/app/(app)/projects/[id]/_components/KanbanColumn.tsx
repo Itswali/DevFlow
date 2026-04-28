@@ -1,76 +1,60 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useDroppable } from '@dnd-kit/core';
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import TaskCard from './TaskCard';
+import { useDroppable }            from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import TaskCard      from './TaskCard';
 import { Task, TaskStatus } from './KanbanBoard';
-import { createTask } from '@/lib/actions/task.actions';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { createTask }       from '@/lib/actions/task.actions';
+import { Input }    from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Button }   from '@/components/ui/button';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { Plus, X, Loader2, Calendar, User, Flag } from 'lucide-react';
+import { Plus, X, Loader2, Calendar, User, Flag, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {
-  column: { id: TaskStatus; label: string };
-  tasks: Task[];
-  projectId: string;
+  column:        { id: TaskStatus; label: string; color: string };
+  tasks:         Task[];
+  projectId:     string;
   currentUserId: string;
-  members: { _id: string; name: string; image?: string }[];
+  members:       { _id: string; name: string; image?: string }[];
 }
 
-export default function KanbanColumn({
-  column,
-  tasks,
-  projectId,
-  members = [],
-  currentUserId,
-}: Props) {
-  const [adding, setAdding] = useState(false);
+export default function KanbanColumn({ column, tasks, projectId, members = [], currentUserId }: Props) {
+  const [adding, setAdding]          = useState(false);
   const [isPending, startTransition] = useTransition();
-
-  // --- Form State ---
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
-  const [assigneeId, setAssigneeId] = useState<string>('');
-  const [dueDate, setDueDate] = useState('');
+  const [title,       setTitle]      = useState('');
+  const [description, setDesc]       = useState('');
+  const [priority,    setPriority]   = useState<'low' | 'medium' | 'high' | 'critical'>('medium');
+  const [assigneeId,  setAssignee]   = useState('');
+  const [dueDate,     setDueDate]    = useState('');
+  const [tagsInput,   setTagsInput]  = useState('');
 
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
 
-  const resetForm = () => {
-    setTitle('');
-    setDescription('');
-    setPriority('medium');
-    setAssigneeId('');
-    setDueDate('');
+  function resetForm() {
+    setTitle(''); setDesc(''); setPriority('medium');
+    setAssignee(''); setDueDate(''); setTagsInput('');
     setAdding(false);
-  };
+  }
 
   function handleAdd() {
     if (!title.trim()) return toast.error('Title is required');
-
+    const tags = tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
     startTransition(async () => {
       try {
         await createTask({
           title: title.trim(),
           description: description.trim() || undefined,
           projectId,
-          status: column.id, // Ensure it lands in the correct column
+          status: column.id,
           priority,
           assigneeId: assigneeId || undefined,
-          dueDate: dueDate || undefined,
+          dueDate:    dueDate    || undefined,
+          tags,
         });
         toast.success('Task created!');
         resetForm();
@@ -81,36 +65,32 @@ export default function KanbanColumn({
   }
 
   return (
-    <div className="flex flex-col w-80 shrink-0">
-      {/* Column Header */}
-      <div className="flex items-center justify-between mb-3 px-1">
+    <div className="flex flex-col w-[272px] shrink-0">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3 px-0.5">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm">{column.label}</span>
-          <span className="bg-muted text-muted-foreground text-[10px] font-bold rounded-full px-2 py-0.5">
+          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${column.color}`} />
+          <span className="font-semibold text-sm text-gray-700">{column.label}</span>
+          <span className="text-[10px] font-bold text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">
             {tasks.length}
           </span>
         </div>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="w-7 h-7 hover:bg-primary/10 hover:text-primary"
+        <button
           onClick={() => setAdding(true)}
+          className="w-6 h-6 rounded-md flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-200 transition-colors"
         >
-          <Plus className="w-4 h-4" />
-        </Button>
+          <Plus className="w-3.5 h-3.5" />
+        </button>
       </div>
 
-      {/* Tasks List */}
+      {/* Drop zone */}
       <div
         ref={setNodeRef}
-        className={`flex flex-col gap-3 flex-1 rounded-xl p-2 min-h-[500px] transition-colors border-2 border-transparent ${
-          isOver ? 'bg-secondary/50 border-dashed border-primary/20' : 'bg-muted/30'
+        className={`flex flex-col gap-2.5 flex-1 rounded-xl p-2 min-h-[500px] transition-all ${
+          isOver ? 'bg-blue-50 ring-2 ring-blue-200 ring-dashed' : 'bg-gray-100/60'
         }`}
       >
-        <SortableContext
-          items={tasks.map((t) => t._id)}
-          strategy={verticalListSortingStrategy}
-        >
+        <SortableContext items={tasks.map((t) => t._id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
             <TaskCard
               key={task._id}
@@ -122,95 +102,82 @@ export default function KanbanColumn({
           ))}
         </SortableContext>
 
-        {/* Expanded Add Task Form */}
+        {/* Add form */}
         {adding ? (
-          <div className="flex flex-col gap-3 p-3 bg-background rounded-lg border shadow-sm animate-in fade-in zoom-in-95 duration-200">
+          <div className="flex flex-col gap-2 p-3 bg-white rounded-xl border border-gray-200 shadow-sm animate-in fade-in zoom-in-95 duration-150">
             <Input
               autoFocus
               placeholder="Task title..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="font-medium border-none px-0 focus-visible:ring-0 text-sm"
+              onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') resetForm(); }}
+              className="text-sm font-medium border-none px-0 shadow-none focus-visible:ring-0"
             />
-
             <Textarea
-              placeholder="Add description..."
+              placeholder="Description (optional)..."
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="text-xs resize-none border-none px-0 focus-visible:ring-0 min-h-[60px]"
+              onChange={(e) => setDesc(e.target.value)}
+              className="text-xs resize-none border-none px-0 shadow-none focus-visible:ring-0 min-h-[44px]"
             />
-
-            <div className="grid grid-cols-1 gap-2">
-              {/* Priority & Assignee Row */}
-              <div className="flex gap-2">
-                <Select value={priority} onValueChange={(val: any) => setPriority(val)}>
-                  <SelectTrigger className="h-7 text-[10px] w-full">
-                    <Flag className="w-3 h-3 mr-1" />
-                    <SelectValue placeholder="Priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={assigneeId} onValueChange={setAssigneeId}>
-                  <SelectTrigger className="h-7 text-[10px] w-full">
-                    <User className="w-3 h-3 mr-1" />
-                    <SelectValue placeholder="Assignee" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {members.map((m) => (
-                      <SelectItem key={m._id} value={m._id}>
-                        {m.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Due Date */}
-              <div className="relative">
-                <Calendar className="absolute left-2 top-1.5 w-3 h-3 text-muted-foreground" />
-                <Input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="h-7 text-[10px] pl-7"
-                />
-              </div>
+            <div className="flex gap-2">
+              <Select value={priority} onValueChange={(v: any) => setPriority(v)}>
+                <SelectTrigger className="h-7 text-[10px] flex-1 gap-1">
+                  <Flag className="w-3 h-3 shrink-0" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="critical">Critical</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={assigneeId} onValueChange={setAssignee}>
+                <SelectTrigger className="h-7 text-[10px] flex-1 gap-1">
+                  <User className="w-3 h-3 shrink-0" />
+                  <SelectValue placeholder="Assignee" />
+                </SelectTrigger>
+                <SelectContent>
+                  {members.map((m) => (
+                    <SelectItem key={m._id} value={m._id}>{m.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2 border-t">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-xs"
-                onClick={resetForm}
-              >
-                Cancel
+            <div className="relative">
+              <Tag className="absolute left-2 top-1.5 w-3 h-3 text-gray-400" />
+              <Input
+                placeholder="Tags: backend, ui..."
+                value={tagsInput}
+                onChange={(e) => setTagsInput(e.target.value)}
+                className="h-7 text-[10px] pl-6"
+              />
+            </div>
+            <div className="relative">
+              <Calendar className="absolute left-2 top-1.5 w-3 h-3 text-gray-400" />
+              <Input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="h-7 text-[10px] pl-6"
+              />
+            </div>
+            <div className="flex justify-end gap-1.5 pt-1 border-t border-gray-100">
+              <Button variant="ghost" size="sm" className="h-7 text-xs px-2" onClick={resetForm}>
+                <X className="w-3 h-3 mr-1" />Cancel
               </Button>
-              <Button
-                size="sm"
-                className="h-8 text-xs px-4"
-                onClick={handleAdd}
-                disabled={isPending || !title.trim()}
-              >
-                {isPending ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : null}
-                Create Task
+              <Button size="sm" className="h-7 text-xs px-3" onClick={handleAdd} disabled={isPending || !title.trim()}>
+                {isPending && <Loader2 className="w-3 h-3 animate-spin mr-1" />}Create
               </Button>
             </div>
           </div>
         ) : (
-          <Button
-            variant="ghost"
-            className="justify-start text-muted-foreground text-xs h-9 hover:bg-background/50"
+          <button
             onClick={() => setAdding(true)}
+            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 px-2 py-2 rounded-lg hover:bg-white/80 transition-colors w-full"
           >
-            <Plus className="w-3 h-3 mr-2" />
-            Add a task
-          </Button>
+            <Plus className="w-3.5 h-3.5" /> Add a task
+          </button>
         )}
       </div>
     </div>

@@ -90,6 +90,7 @@ export default async function ProjectPage({ params }: Props) {
       <div className="flex-1 overflow-hidden">
         <KanbanBoard
           projectId={id}
+          projectName={project.name}
           initialTasks={tasks}
           members={project.members}
           currentUserId={session.user.id}
