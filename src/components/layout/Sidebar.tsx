@@ -1,9 +1,12 @@
 'use client';
-import { useUIStore }    from '@/store/uiStore';
-import Link              from 'next/link';
-import { usePathname }   from 'next/navigation';
-import { LayoutDashboard, FolderKanban, ChevronLeft, Users } from 'lucide-react';
-import { cn }            from '@/lib/utils';
+import { useUIStore }   from '@/store/uiStore';
+import Link             from 'next/link';
+import { usePathname }  from 'next/navigation';
+import {
+  LayoutDashboard, FolderKanban, ChevronLeft,
+  Users, GitPullRequest, Settings,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Props {
   projects: { _id: string; name: string }[];
@@ -16,8 +19,10 @@ export default function Sidebar({ projects }: Props) {
   const pathname         = usePathname();
 
   const navLinks = [
-    { href: '/dashboard', icon: <LayoutDashboard className="w-4 h-4 shrink-0" />, label: 'Dashboard' },
-    { href: '/team',      icon: <Users           className="w-4 h-4 shrink-0" />, label: 'Team'      },
+    { href: '/dashboard', icon: <LayoutDashboard  className="w-4 h-4 shrink-0" />, label: 'Dashboard'    },
+    { href: '/team',      icon: <Users            className="w-4 h-4 shrink-0" />, label: 'Team'         },
+    { href: '/reviews',   icon: <GitPullRequest   className="w-4 h-4 shrink-0" />, label: 'Code Reviews' },
+    { href: '/settings',  icon: <Settings         className="w-4 h-4 shrink-0" />, label: 'Settings'     },
   ];
 
   return (
@@ -36,8 +41,6 @@ export default function Sidebar({ projects }: Props) {
 
       {/* Nav */}
       <nav className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
-
-        {/* Top-level nav links */}
         {navLinks.map(({ href, icon, label }) => (
           <Link
             key={href}
