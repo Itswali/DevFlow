@@ -16,7 +16,12 @@ export default async function TeamPage() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <TeamList members={members} projects={projects} />
+      <TeamList
+        members={members}
+        projects={projects}
+        currentUserId={session.user.id}
+        currentUserRole={(session.user as any).role ?? 'member'}
+      />
     </div>
   );
 }

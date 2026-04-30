@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { updateProfile }           from '@/lib/actions/settings.actions';
+import { useState, useTransition, useRef } from 'react';
+import { updateProfile, updateProfileImage } from '@/lib/actions/settings.actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input }   from '@/components/ui/input';
 import { Button }  from '@/components/ui/button';
@@ -26,13 +26,59 @@ const ROLE_CONFIG: Record<string, { label: string; icon: React.ReactNode; class:
 };
 
 export default function SettingsClient({ user }: { user: UserData }) {
-  const [activeTab,  setActiveTab]  = useState<Tab>('Profile');
-  const [firstName,  setFirstName]  = useState(user.name.split(' ')[0] ?? '');
-  const [lastName,   setLastName]   = useState(user.name.split(' ').slice(1).join(' ') ?? '');
-  const [isPending,  startTransition] = useTransition();
+  const [activeTab,    setActiveTab]    = useState<Tab>('Profile');
+  const [firstName,    setFirstName]    = useState(user.name.split(' ')[0] ?? '');
+  const [lastName,     setLastName]     = useState(user.name.split(' ').slice(1).join(' ') ?? '');
+  const [avatarUrl,    setAvatarUrl]    = useState(user.image ?? '');
+  const [isPending,    startTransition] = useTransition();
+  const [isUploading,  setIsUploading]  = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const role = ROLE_CONFIG[user.role?.toLowerCase()] ?? ROLE_CONFIG.member;
 
+  // ── Upload to Cloudinary ──────────────────────────────────
+  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      return toast.error('Only JPG, PNG or WebP allowed');
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      return toast.error('Image must be under 2MB');
+    }
+
+    setIsUploading(true);
+    try {
+      const cloudName  = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
+      const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', uploadPreset);
+      formData.append('folder', 'devflow/avatars');
+
+      const res  = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        { method: 'POST', body: formData }
+      );
+
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json();
+      const url  = data.secure_url as string;
+
+      setAvatarUrl(url);
+      await updateProfileImage(url);
+      toast.success('Photo updated!');
+    } catch {
+      toast.error('Failed to upload photo');
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  // ── Save name ─────────────────────────────────────────────
   function handleSave() {
     if (!firstName.trim()) return toast.error('First name is required');
     startTransition(async () => {
@@ -66,33 +112,55 @@ export default function SettingsClient({ user }: { user: UserData }) {
         ))}
       </div>
 
-      {/* Tab content */}
       <div className="p-6">
-
-        {/* Profile tab */}
         {activeTab === 'Profile' && (
           <div className="space-y-6 max-w-lg">
 
-            {/* Avatar */}
+            {/* Avatar upload */}
             <div className="flex items-center gap-4">
               <div className="relative">
                 <Avatar className="w-16 h-16 rounded-2xl border border-gray-100">
-                  <AvatarImage src={user.image ?? undefined} />
+                  <AvatarImage src={avatarUrl || undefined} className="object-cover" />
                   <AvatarFallback className="rounded-2xl text-lg font-bold bg-violet-100 text-violet-600">
-                    {user.name[0].toUpperCase()}
+                    {(firstName[0] ?? user.name[0] ?? '?').toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <button className="absolute -bottom-1 -right-1 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors">
-                  <Camera className="w-3 h-3 text-gray-500" />
+
+                {/* Upload button overlay */}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="absolute -bottom-1 -right-1 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  {isUploading
+                    ? <Loader2 className="w-3 h-3 text-gray-400 animate-spin" />
+                    : <Camera  className="w-3 h-3 text-gray-500" />
+                  }
                 </button>
+
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handleImageChange}
+                />
               </div>
+
               <div>
-                <p className="text-sm font-medium text-gray-700">Change Photo</p>
-                <p className="text-xs text-gray-400 mt-0.5">JPG, PNG. Max 2MB</p>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="text-sm font-medium text-gray-700 hover:text-violet-600 transition-colors disabled:opacity-50"
+                >
+                  {isUploading ? 'Uploading...' : 'Change Photo'}
+                </button>
+                <p className="text-xs text-gray-400 mt-0.5">JPG, PNG, WebP. Max 2MB</p>
               </div>
             </div>
 
-            {/* Name fields */}
+            {/* Name */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-gray-600">First Name</label>
@@ -118,7 +186,7 @@ export default function SettingsClient({ user }: { user: UserData }) {
               <Input
                 value={user.email}
                 disabled
-                className="text-sm bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed"
+                className="text-sm bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
               />
             </div>
 
@@ -138,7 +206,7 @@ export default function SettingsClient({ user }: { user: UserData }) {
             <div className="flex justify-end pt-2">
               <Button
                 onClick={handleSave}
-                disabled={isPending}
+                disabled={isPending || isUploading}
                 className="bg-violet-600 hover:bg-violet-700 text-white px-6"
               >
                 {isPending
@@ -150,7 +218,6 @@ export default function SettingsClient({ user }: { user: UserData }) {
           </div>
         )}
 
-        {/* Placeholder tabs */}
         {activeTab === 'Notifications' && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-sm text-gray-400">Notification preferences coming soon</p>
@@ -166,7 +233,6 @@ export default function SettingsClient({ user }: { user: UserData }) {
             <p className="text-sm text-gray-400">Appearance settings coming soon</p>
           </div>
         )}
-
       </div>
     </div>
   );
