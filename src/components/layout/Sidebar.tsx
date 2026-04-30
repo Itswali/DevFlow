@@ -5,6 +5,7 @@ import { usePathname }  from 'next/navigation';
 import {
   LayoutDashboard, FolderKanban, ChevronLeft,
   Users, GitPullRequest, Settings,
+  FolderArchive,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -21,6 +22,7 @@ export default function Sidebar({ projects }: Props) {
   const navLinks = [
     { href: '/dashboard', icon: <LayoutDashboard  className="w-4 h-4 shrink-0" />, label: 'Dashboard'    },
     { href: '/team',      icon: <Users            className="w-4 h-4 shrink-0" />, label: 'Team'         },
+    { href: '/projects',      icon: <FolderArchive          className="w-4 h-4 shrink-0" />, label: 'Project'         },
     { href: '/reviews',   icon: <GitPullRequest   className="w-4 h-4 shrink-0" />, label: 'Code Reviews' },
     { href: '/settings',  icon: <Settings         className="w-4 h-4 shrink-0" />, label: 'Settings'     },
   ];
