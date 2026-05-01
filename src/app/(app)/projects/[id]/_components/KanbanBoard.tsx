@@ -55,6 +55,11 @@ export default function KanbanBoard({ projectId, projectName, initialTasks, memb
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
+  // ── Optimistic delete ─────────────────────────────────────
+  function handleTaskDeleted(taskId: string) {
+    setTasks((prev) => prev.filter((t) => t._id !== taskId));
+  }
+
   const filteredTasks = useMemo(() => tasks.filter((t) => {
     const matchesPriority = priority === 'all' || t.priority === priority;
     const q = search.toLowerCase().trim();
@@ -170,6 +175,7 @@ export default function KanbanBoard({ projectId, projectName, initialTasks, memb
               projectId={projectId}
               members={members}
               currentUserId={currentUserId}
+              onTaskDeleted={handleTaskDeleted}
             />
           ))}
         </div>

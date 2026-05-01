@@ -21,9 +21,10 @@ interface Props {
   projectId:     string;
   currentUserId: string;
   members:       { _id: string; name: string; image?: string }[];
+  onTaskDeleted: (taskId: string) => void;
 }
 
-export default function KanbanColumn({ column, tasks, projectId, members = [], currentUserId }: Props) {
+export default function KanbanColumn({ column, tasks, projectId, members = [], currentUserId, onTaskDeleted }: Props) {
   const [adding, setAdding]          = useState(false);
   const [isPending, startTransition] = useTransition();
   const [title,       setTitle]      = useState('');
@@ -98,6 +99,7 @@ export default function KanbanColumn({ column, tasks, projectId, members = [], c
               projectId={projectId}
               currentUserId={currentUserId}
               members={members}
+              onDeleted={onTaskDeleted}
             />
           ))}
         </SortableContext>
@@ -122,8 +124,7 @@ export default function KanbanColumn({ column, tasks, projectId, members = [], c
             <div className="flex gap-2">
               <Select value={priority} onValueChange={(v: any) => setPriority(v)}>
                 <SelectTrigger className="h-7 text-[10px] flex-1 gap-1">
-                  <Flag className="w-3 h-3 shrink-0" />
-                  <SelectValue />
+                  <Flag className="w-3 h-3 shrink-0" /><SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="critical">Critical</SelectItem>
@@ -134,8 +135,7 @@ export default function KanbanColumn({ column, tasks, projectId, members = [], c
               </Select>
               <Select value={assigneeId} onValueChange={setAssignee}>
                 <SelectTrigger className="h-7 text-[10px] flex-1 gap-1">
-                  <User className="w-3 h-3 shrink-0" />
-                  <SelectValue placeholder="Assignee" />
+                  <User className="w-3 h-3 shrink-0" /><SelectValue placeholder="Assignee" />
                 </SelectTrigger>
                 <SelectContent>
                   {members.map((m) => (
@@ -146,21 +146,11 @@ export default function KanbanColumn({ column, tasks, projectId, members = [], c
             </div>
             <div className="relative">
               <Tag className="absolute left-2 top-1.5 w-3 h-3 text-gray-400" />
-              <Input
-                placeholder="Tags: backend, ui..."
-                value={tagsInput}
-                onChange={(e) => setTagsInput(e.target.value)}
-                className="h-7 text-[10px] pl-6"
-              />
+              <Input placeholder="Tags: backend, ui..." value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} className="h-7 text-[10px] pl-6" />
             </div>
             <div className="relative">
               <Calendar className="absolute left-2 top-1.5 w-3 h-3 text-gray-400" />
-              <Input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="h-7 text-[10px] pl-6"
-              />
+              <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="h-7 text-[10px] pl-6" />
             </div>
             <div className="flex justify-end gap-1.5 pt-1 border-t border-gray-100">
               <Button variant="ghost" size="sm" className="h-7 text-xs px-2" onClick={resetForm}>
