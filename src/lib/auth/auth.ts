@@ -13,6 +13,12 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  trustedOrigins: [
+        "https://dev-flow-blush-six.vercel.app",
+        "https://dev-flow-np15ivihx-wali-muhammads-projects-d5754d13.vercel.app"
+    ],
+    // Ensure your secret is set in Vercel Env Vars
+    secret: process.env.BETTER_AUTH_SECRET,
   plugins: [
     admin({
       defaultRole: "user",
