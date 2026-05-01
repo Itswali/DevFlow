@@ -1,5 +1,6 @@
 'use client';
-import { useUIStore } from '@/store/uiStore';
+
+import { useUIStore }   from '@/store/uiStore';
 import { Button }       from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -12,7 +13,7 @@ import { authClient }         from '@/lib/auth/auth-client';
 import { useRouter }          from 'next/navigation';
 
 interface Props {
-  user: { name: string; email: string; image?: string };
+  user: { name: string; email: string; image?: string | null; };
 }
 
 export default function Navbar({ user }: Props) {
@@ -26,7 +27,6 @@ export default function Navbar({ user }: Props) {
 
   return (
     <header className="h-14 border-b flex items-center justify-between px-4 shrink-0 bg-background">
-
       <Button
         variant="ghost"
         size="icon"
@@ -40,7 +40,7 @@ export default function Navbar({ user }: Props) {
         <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-2 rounded-full outline-none">
             <Avatar className="w-8 h-8">
-              <AvatarImage src={user.image} />
+              <AvatarImage src={user.image ?? undefined} />
               <AvatarFallback className="text-xs">
                 {user.name[0].toUpperCase()}
               </AvatarFallback>
@@ -54,7 +54,7 @@ export default function Navbar({ user }: Props) {
             <p className="text-xs text-muted-foreground">{user.email}</p>
           </div>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push('/settings')}>
             <User className="w-4 h-4 mr-2" /> Profile
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -66,7 +66,6 @@ export default function Navbar({ user }: Props) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
     </header>
   );
 }
