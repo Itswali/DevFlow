@@ -21,7 +21,12 @@ export default async function AppShell({
       <Sidebar projects={projects} />
 
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Navbar user={session.user} />
+       <Navbar
+  user={{
+    ...session.user,
+    image: session.user.image ?? undefined // Converts null to undefined
+  }}
+/>
 
         <main className="flex-1 overflow-auto">
           {children}
